@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getProducts, addProduct, updateProduct, deleteProduct, uploadImage } from '../services/api';
-import './AdminPanel.css';
+import './adminPanel.css';
 
 const AdminPanel = () => {
   const [products, setProducts] = useState([]);
