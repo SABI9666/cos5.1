@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import Navbar from '../components/Navbar.jsx';
-import Footer from '../components/Footer.jsx';
+import Navbar from '../components/navbar.jsx';
+import Footer from '../components/footer.jsx';
 import { getProducts } from '../services/api';
-import './ProductsPage.css';
+import './productspage.css';
 
 const ProductsPage = ({ addToCart, onCartClick, cartCount }) => {
   const [searchParams] = useSearchParams();
