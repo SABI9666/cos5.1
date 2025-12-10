@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import Navbar from '../components/Navbar.jsx';
-import Footer from '../components/Footer.jsx';
+import Navbar from '../components/navbar.jsx';
+import Footer from '../components/footer.jsx';
 import { getProducts } from '../services/api';
-import './ProductDetail.css';
+import './productdetail.css';
 
 const ProductDetail = ({ addToCart, onCartClick, cartCount }) => {
   const { id } = useParams();
