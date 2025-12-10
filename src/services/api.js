@@ -1,3 +1,4 @@
+// Firebase configuration and API functions
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -149,50 +150,12 @@ let mockProducts = [
   }
 ];
 
-// Mock API functions (for development without Firebase)
-/*
-export const getProducts = async () => {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve([...mockProducts]), 500);
-  });
-};
 
-export const addProduct = async (productData) => {
-  return new Promise((resolve) => {
-    const newProduct = {
-      id: Date.now().toString(),
-      ...productData
-    };
-    mockProducts.push(newProduct);
-    setTimeout(() => resolve(newProduct.id), 500);
-  });
-};
 
-export const updateProduct = async (productId, productData) => {
-  return new Promise((resolve) => {
-    const index = mockProducts.findIndex(p => p.id === productId);
-    if (index !== -1) {
-      mockProducts[index] = { ...mockProducts[index], ...productData };
-    }
-    setTimeout(() => resolve(), 500);
-  });
-};
 
-export const deleteProduct = async (productId) => {
-  return new Promise((resolve) => {
-    mockProducts = mockProducts.filter(p => p.id !== productId);
-    setTimeout(() => resolve(), 500);
-  });
-};
 
-export const uploadImage = async (file) => {
-  return new Promise((resolve) => {
-    // In a real app, this would upload to a server
-    // For now, return a placeholder or use FileReader to create a data URL
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setTimeout(() => resolve(reader.result), 500);
-    };
-    reader.readAsDataURL(file);
-  });
-};
+
+
+
+
+
