@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getProducts, addProduct, updateProduct, deleteProduct, uploadImage } from '../services/api';
 import './adminpanel.css';
 
-const AdminPanel = () => {
+const adminpanel = () => {
   const [products, setProducts] = useState([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
