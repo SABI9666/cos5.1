@@ -5,12 +5,12 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 // Firebase configuration - Replace with your actual Firebase config
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAoRjQqAP-3QO9rjoQK7SSZ788lyMmhXmU",
+  authDomain: "eb-tracker-42881.firebaseapp.com",
+  projectId: "eb-tracker-42881",
+  storageBucket: "",
+  messagingSenderId: "eb-tracker-42881.firebasestorage.app",
+  appId: "1:922340749018:web:68296d8775a79e71b2bfe3"
 };
 
 // Initialize Firebase
