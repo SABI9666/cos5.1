@@ -8,7 +8,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyAoRjQqAP-3QO9rjoQK7SSZ788lyMmhXmU",
   authDomain: "eb-tracker-42881.firebaseapp.com",
   projectId: "eb-tracker-42881",
-  storageBucket: "",
+  storageBucket: "eb-tracker-42881.firebasestorage.app",
   messagingSenderId: "eb-tracker-42881.firebasestorage.app",
   appId: "1:922340749018:web:68296d8775a79e71b2bfe3"
 };
