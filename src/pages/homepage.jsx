@@ -15,6 +15,9 @@ function HomePage(props) {
   var loadingState = useState(true);
   var loading = loadingState[0];
   var setLoading = loadingState[1];
+  var activeCategoryState = useState(null);
+  var activeCategory = activeCategoryState[0];
+  var setActiveCategory = activeCategoryState[1];
 
   useEffect(function() {
     loadFeaturedProducts();
@@ -41,30 +44,107 @@ function HomePage(props) {
 
   var categories = [
     { 
+      id: 'strip',
       name: 'LED Strip Lights', 
-      description: 'Flexible RGB lighting solutions', 
-      image: 'https://images.unsplash.com/photo-1550535424-b498819c412f?w=800&q=80', 
+      description: 'Flexible RGB lighting for ambient decoration',
+      icon: 'strip',
       link: '/products?category=strip' 
     },
     { 
+      id: 'bulbs',
       name: 'Smart Bulbs', 
-      description: 'WiFi-enabled color-changing bulbs', 
-      image: 'https://images.unsplash.com/photo-1532007942811-ed0b29c9f374?w=800&q=80', 
+      description: 'WiFi-enabled color-changing bulbs',
+      icon: 'bulb',
       link: '/products?category=bulbs' 
     },
     { 
+      id: 'panels',
       name: 'Panel Lights', 
-      description: 'Modern ceiling & wall panels', 
-      image: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=800&q=80', 
+      description: 'Modern ceiling & wall mounted panels',
+      icon: 'panel',
       link: '/products?category=panels' 
     },
     { 
+      id: 'outdoor',
       name: 'Outdoor Lighting', 
-      description: 'Weather-resistant LED solutions', 
-      image: 'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=800&q=80', 
+      description: 'Weather-resistant garden & security lights',
+      icon: 'outdoor',
       link: '/products?category=outdoor' 
+    },
+    { 
+      id: 'decorative',
+      name: 'Decorative Lights', 
+      description: 'Chandeliers, pendants & accent lighting',
+      icon: 'decorative',
+      link: '/products?category=decorative' 
+    },
+    { 
+      id: 'accessories',
+      name: 'Accessories', 
+      description: 'Controllers, dimmers & power supplies',
+      icon: 'accessories',
+      link: '/products?category=accessories' 
     }
   ];
+
+  function getCategoryIcon(iconType) {
+    switch(iconType) {
+      case 'strip':
+        return (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M2 12h20M2 12c0-1.5 1-3 3-3h14c2 0 3 1.5 3 3s-1 3-3 3H5c-2 0-3-1.5-3-3z" strokeLinecap="round" strokeLinejoin="round"/>
+            <circle cx="6" cy="12" r="1.5" fill="currentColor"/>
+            <circle cx="10" cy="12" r="1.5" fill="currentColor"/>
+            <circle cx="14" cy="12" r="1.5" fill="currentColor"/>
+            <circle cx="18" cy="12" r="1.5" fill="currentColor"/>
+          </svg>
+        );
+      case 'bulb':
+        return (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M9 21h6M12 3a6 6 0 0 0-6 6c0 2.22 1.21 4.16 3 5.19V17a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-2.81c1.79-1.03 3-2.97 3-5.19a6 6 0 0 0-6-6z" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 3v1M5.6 5.6l.7.7M3 12h1M5.6 18.4l.7-.7M18.4 5.6l-.7.7M21 12h-1M18.4 18.4l-.7-.7" strokeLinecap="round"/>
+          </svg>
+        );
+      case 'panel':
+        return (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M3 9h18M9 3v18" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+      case 'outdoor':
+        return (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" strokeLinecap="round"/>
+            <circle cx="12" cy="12" r="5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+      case 'decorative':
+        return (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M12 2L8 8h8l-4-6z" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 8v3" strokeLinecap="round"/>
+            <circle cx="12" cy="14" r="3" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 17v3M8 22h8" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M7 14l-2 1M17 14l2 1" strokeLinecap="round"/>
+          </svg>
+        );
+      case 'accessories':
+        return (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <circle cx="12" cy="12" r="3" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+      default:
+        return (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <circle cx="12" cy="12" r="10" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+    }
+  }
 
   return (
     <div className="home-page">
@@ -82,30 +162,45 @@ function HomePage(props) {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section category-section">
         <h2 className="section-title">Shop by Category</h2>
         <p className="section-subtitle">Discover the perfect lighting solution for every space</p>
-        <div className="category-grid">
+        
+        <div className="category-menu">
           {categories.map(function(category, index) {
             return (
-              <Link to={category.link} key={index} className="category-card">
-                <div className="category-image-wrapper">
-                  <img src={category.image} alt={category.name} className="category-image" onError={handleImageError} />
+              <Link 
+                to={category.link} 
+                key={category.id} 
+                className={activeCategory === category.id ? "category-menu-item active" : "category-menu-item"}
+                onMouseEnter={function() { setActiveCategory(category.id); }}
+                onMouseLeave={function() { setActiveCategory(null); }}
+              >
+                <div className="category-menu-icon">
+                  {getCategoryIcon(category.icon)}
                 </div>
-                <div className="category-overlay"></div>
-                <div className="category-info">
-                  <h3 className="category-name">{category.name}</h3>
-                  <p className="category-description">{category.description}</p>
-                  <span className="shop-link">
-                    Shop Now
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </span>
+                <div className="category-menu-content">
+                  <h3 className="category-menu-name">{category.name}</h3>
+                  <p className="category-menu-desc">{category.description}</p>
                 </div>
+                <div className="category-menu-arrow">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <div className="category-menu-glow"></div>
               </Link>
             );
           })}
+        </div>
+
+        <div className="category-browse-all">
+          <Link to="/products" className="browse-all-btn">
+            <span>Browse All Products</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </Link>
         </div>
       </section>
 
