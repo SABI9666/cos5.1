@@ -31,7 +31,7 @@ function HomePage(props) {
   }
 
   function handleImageError(e) {
-    e.target.src = 'https://via.placeholder.com/400x400?text=LED+Product';
+    e.target.src = 'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=400';
   }
 
   function handleAddToCart(e, product) {
@@ -40,10 +40,10 @@ function HomePage(props) {
   }
 
   var categories = [
-    { name: 'LED Strip Lights', description: 'Flexible RGB lighting solutions', image: 'https://images.unsplash.com/photo-1600375739037-ae4f0b32e340?w=800', link: '/products?category=strip' },
-    { name: 'Smart Bulbs', description: 'WiFi-enabled color-changing bulbs', image: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=800', link: '/products?category=bulbs' },
-    { name: 'Panel Lights', description: 'Modern ceiling & wall panels', image: 'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=800', link: '/products?category=panels' },
-    { name: 'Outdoor Lighting', description: 'Weather-resistant LED solutions', image: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800', link: '/products?category=outdoor' }
+    { name: 'LED Strip Lights', description: 'Flexible RGB lighting solutions', image: 'https://images.unsplash.com/photo-1550535424-b498819c412f?w=800', link: '/products?category=strip' },
+    { name: 'Smart Bulbs', description: 'WiFi-enabled color-changing bulbs', image: 'https://images.unsplash.com/photo-1532007942811-ed0b29c9f374?w=800', link: '/products?category=bulbs' },
+    { name: 'Panel Lights', description: 'Modern ceiling & wall panels', image: 'https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=800', link: '/products?category=panels' },
+    { name: 'Outdoor Lighting', description: 'Weather-resistant LED solutions', image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800', link: '/products?category=outdoor' }
   ];
 
   return (
@@ -51,7 +51,7 @@ function HomePage(props) {
       <Navbar onCartClick={onCartClick} cartCount={cartCount} />
       <section className="hero-section">
         <div className="hero-background-container">
-          <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920" alt="LED Lights Hero" className="hero-background" />
+          <img src="https://images.unsplash.com/photo-1507494924047-60b8ee826ca9?w=1920" alt="LED Lights Hero" className="hero-background" />
         </div>
         <div className="hero-overlay"></div>
         <div className="hero-content">
@@ -67,7 +67,9 @@ function HomePage(props) {
           {categories.map(function(category, index) {
             return (
               <Link to={category.link} key={index} className="category-card">
-                <img src={category.image} alt={category.name} className="category-image" onError={handleImageError} />
+                <div className="category-image-wrapper">
+                  <img src={category.image} alt={category.name} className="category-image" onError={handleImageError} />
+                </div>
                 <div className="category-info">
                   <h3 className="category-name">{category.name}</h3>
                   <p className="category-description">{category.description}</p>
@@ -83,13 +85,18 @@ function HomePage(props) {
         <p className="section-subtitle">Handpicked premium LED solutions</p>
         {loading ? (
           <div className="loading-container"><div className="loading-spinner"></div></div>
+        ) : featuredProducts.length === 0 ? (
+          <div className="no-products-message">
+            <p>No products available yet. Add products from Admin Panel.</p>
+            <Link to="/admin" className="admin-link-btn">Go to Admin</Link>
+          </div>
         ) : (
           <div className="product-grid">
             {featuredProducts.map(function(product) {
               return (
                 <div key={product.id} className="product-card">
                   <Link to={'/product/' + product.id} className="product-image-container">
-                    <img src={product.imageUrl || 'https://via.placeholder.com/400'} alt={product.name} className="product-image" onError={handleImageError} />
+                    <img src={product.imageUrl || 'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=400'} alt={product.name} className="product-image" onError={handleImageError} />
                     {product.badge && <span className="product-badge">{product.badge}</span>}
                   </Link>
                   <div className="product-info">
