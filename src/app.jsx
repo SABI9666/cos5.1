@@ -108,45 +108,7 @@ cartItems
  
 useState
 (
-function
-(
-)
- 
-{
-
-    
-var
- savedCart 
-=
- 
-localStorage
-.
-getItem
-(
-'luxeled-cart'
-)
-;
-
-    
-return
- savedCart 
-?
- 
-JSON
-.
-parse
-(
-savedCart
-)
- 
-:
- 
-[
-]
-;
-
-  
-}
+getInitialCart
 )
 ;
 
@@ -185,9 +147,64 @@ useState
 ;
 
   
+function
+ 
+getInitialCart
+(
+)
+ 
+{
+
+    
+var
+ savedCart 
+=
+ 
+localStorage
+.
+getItem
+(
+'luxeled-cart'
+)
+;
+
+    
+return
+ savedCart 
+?
+ 
+JSON
+.
+parse
+(
+savedCart
+)
+ 
+:
+ 
+[
+]
+;
+
+  
+}
+
+  
 useEffect
 (
+saveCart
+,
+ 
+[
+cartItems
+]
+)
+;
+
+  
 function
+ 
+saveCart
 (
 )
  
@@ -212,99 +229,11 @@ cartItems
 
   
 }
-,
- 
-[
-cartItems
-]
-)
-;
 
   
 useEffect
 (
-function
-(
-)
- 
-{
-
-    
-if
- 
-(
-isCartOpen
-)
- 
-{
-
-      
-document
-.
-body
-.
-style
-.
-overflow
- 
-=
- 
-'hidden'
-;
-
-    
-}
- 
-else
- 
-{
-
-      
-document
-.
-body
-.
-style
-.
-overflow
- 
-=
- 
-'unset'
-;
-
-    
-}
-
-    
-return
- 
-function
-(
-)
- 
-{
-
-      
-document
-.
-body
-.
-style
-.
-overflow
- 
-=
- 
-'unset'
-;
-
-    
-}
-;
-
-  
-}
+handleBodyScroll
 ,
  
 [
@@ -312,6 +241,69 @@ isCartOpen
 ]
 )
 ;
+
+  
+function
+ 
+handleBodyScroll
+(
+)
+ 
+{
+
+    
+document
+.
+body
+.
+style
+.
+overflow
+ 
+=
+ isCartOpen 
+?
+ 
+'hidden'
+ 
+:
+ 
+'unset'
+;
+
+    
+return
+ resetScroll
+;
+
+  
+}
+
+  
+function
+ 
+resetScroll
+(
+)
+ 
+{
+
+    
+document
+.
+body
+.
+style
+.
+overflow
+ 
+=
+ 
+'unset'
+;
+
+  
+}
 
   
 function
@@ -382,28 +374,28 @@ setCartItems
 (
 function
 (
-prevItems
+prev
 )
  
 {
 
       
 var
- existingItem 
+ existing 
 =
- prevItems
+ prev
 .
 find
 (
 function
 (
-item
+i
 )
  
 {
  
 return
- item
+ i
 .
 id
  
@@ -421,27 +413,29 @@ id
 if
  
 (
-existingItem
+existing
 )
  
 {
 
         
 return
- prevItems
+ prev
 .
 map
 (
 function
 (
-item
+i
 )
  
 {
 
           
-return
- item
+if
+ 
+(
+i
 .
 id
  
@@ -449,18 +443,28 @@ id
  cartProduct
 .
 id
+)
  
-?
+{
+
+            
+return
+ 
+Object
+.
+assign
+(
+{
+}
+,
+ i
+,
  
 {
  
-...
-item
-,
- 
 quantity
 :
- item
+ i
 .
 quantity
  
@@ -469,9 +473,15 @@ quantity
 1
  
 }
- 
-:
- item
+)
+;
+
+          
+}
+
+          
+return
+ i
 ;
 
         
@@ -481,24 +491,25 @@ quantity
 
       
 }
- 
-else
- 
-{
 
-        
+      
 return
- 
+ prev
+.
+concat
+(
 [
-...
-prevItems
+Object
+.
+assign
+(
+{
+}
+,
+ cartProduct
 ,
  
 {
- 
-...
-cartProduct
-,
  
 quantity
 :
@@ -506,11 +517,10 @@ quantity
 1
  
 }
+)
 ]
+)
 ;
-
-      
-}
 
     
 }
@@ -533,19 +543,7 @@ name
     
 setTimeout
 (
-function
-(
-)
- 
-{
- 
-setCartNotification
-(
-''
-)
-;
- 
-}
+clearNotification
 ,
  
 2000
@@ -556,6 +554,25 @@ setCartNotification
 setIsCartOpen
 (
 true
+)
+;
+
+  
+}
+
+  
+function
+ 
+clearNotification
+(
+)
+ 
+{
+
+    
+setCartNotification
+(
+''
 )
 ;
 
@@ -577,26 +594,26 @@ setCartItems
 (
 function
 (
-prevItems
+prev
 )
  
 {
 
       
 return
- prevItems
+ prev
 .
 filter
 (
 function
 (
-item
+i
 )
  
 {
  
 return
- item
+ i
 .
 id
  
@@ -623,7 +640,7 @@ updateQuantity
 (
 productId
 ,
- quantity
+ qty
 )
  
 {
@@ -632,7 +649,7 @@ productId
 if
  
 (
-quantity 
+qty 
 ===
  
 0
@@ -647,64 +664,78 @@ productId
 )
 ;
 
+      
+return
+;
+
     
 }
- 
-else
- 
-{
 
-      
+    
 setCartItems
 (
 function
 (
-prevItems
+prev
 )
  
 {
 
-        
+      
 return
- prevItems
+ prev
 .
 map
 (
 function
 (
-item
+i
+)
+ 
+{
+
+        
+if
+ 
+(
+i
+.
+id
+ 
+===
+ productId
 )
  
 {
 
           
 return
- item
-.
-id
  
-===
- productId 
-?
+Object
+.
+assign
+(
+{
+}
+,
+ i
+,
  
 {
  
-...
-item
-,
- 
 quantity
 :
- quantity 
+ qty 
 }
- 
-:
- item
+)
 ;
 
         
 }
-)
+
+        
+return
+ i
 ;
 
       
@@ -714,6 +745,8 @@ quantity
 
     
 }
+)
+;
 
   
 }
@@ -739,26 +772,33 @@ setCartItems
 }
 
   
-var
- cartCount 
-=
+function
+ 
+getCartCount
+(
+)
+ 
+{
+
+    
+return
  cartItems
 .
 reduce
 (
 function
 (
-total
+t
 ,
- item
+ i
 )
  
 {
  
 return
- total 
+ t 
 +
- item
+ i
 .
 quantity
 ;
@@ -771,6 +811,9 @@ quantity
 ;
 
   
+}
+
+  
 function
  
 openCart
@@ -778,13 +821,15 @@ openCart
 )
  
 {
- 
+
+    
 setIsCartOpen
 (
 true
 )
 ;
- 
+
+  
 }
 
   
@@ -795,14 +840,26 @@ closeCart
 )
  
 {
- 
+
+    
 setIsCartOpen
 (
 false
 )
 ;
- 
+
+  
 }
+
+  
+var
+ cartCount 
+=
+ 
+getCartCount
+(
+)
+;
 
   
 return
@@ -828,7 +885,7 @@ App
         
 {
 cartNotification 
-&&
+?
  
 (
 
@@ -924,6 +981,10 @@ div
 
         
 )
+ 
+:
+ 
+null
 }
 
         
