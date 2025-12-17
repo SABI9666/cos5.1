@@ -101,63 +101,6 @@ export const uploadImage = async (file) => {
   }
 };
 
-/**
- * Alternative: Use a local mock API for development
- * Comment out Firebase functions and use these instead
- */
-
-// Mock data store
-let mockProducts = [
-  {
-    id: '1',
-    name: 'RGB LED Strip Light 5M',
-    description: 'Flexible RGB LED strip with remote control, 16 million colors, and music sync mode. Perfect for home decoration.',
-    price: 1299,
-    category: 'strip',
-    quantity: 50,
-    imageUrl: 'https://images.unsplash.com/photo-1600375739037-ae4f0b32e340?w=800',
-    badge: 'Best Seller'
-  },
-  {
-    id: '2',
-    name: 'Smart WiFi LED Bulb',
-    description: 'Voice-controlled smart bulb compatible with Alexa and Google Home. Adjustable brightness and color temperature.',
-    price: 599,
-    category: 'bulbs',
-    quantity: 100,
-    imageUrl: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=800',
-    badge: 'New'
-  },
-  {
-    id: '3',
-    name: 'LED Panel Light 600x600',
-    description: 'Energy-efficient ceiling panel light with uniform illumination. Ideal for offices and commercial spaces.',
-    price: 2499,
-    category: 'panels',
-    quantity: 30,
-    imageUrl: 'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=800',
-    badge: ''
-  },
-  {
-    id: '4',
-    name: 'Outdoor LED Floodlight',
-    description: 'Waterproof IP65 floodlight with wide beam angle. Perfect for outdoor security and landscape lighting.',
-    price: 1899,
-    category: 'outdoor',
-    quantity: 25,
-    imageUrl: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800',
-    badge: 'Sale -20%'
-  }
-];
-
-
-
-
-
-
-
-
-
 
 
 
