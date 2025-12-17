@@ -96,9 +96,6 @@ App
 {
 
   
-// Initialize cart from localStorage
-
-  
 const
  
 [
@@ -189,9 +186,6 @@ useState
 ;
 
   
-// Save cart to localStorage whenever it changes
-
-  
 useEffect
 (
 (
@@ -227,9 +221,6 @@ cartItems
 ]
 )
 ;
-
-  
-// Prevent body scroll when cart is open
 
   
 useEffect
@@ -342,9 +333,6 @@ product
 {
 
     
-// Extract only the necessary properties for cart
-
-    
 const
  cartProduct 
 =
@@ -402,7 +390,9 @@ category
     
 setCartItems
 (
+(
 prevItems
+)
  
 =>
  
@@ -416,7 +406,9 @@ const
 .
 find
 (
+(
 item
+)
  
 =>
  item
@@ -445,7 +437,9 @@ return
 .
 map
 (
+(
 item
+)
  
 =>
 
@@ -457,8 +451,7 @@ id
  cartProduct
 .
 id
-
-            
+ 
 ?
  
 {
@@ -478,8 +471,7 @@ quantity
 1
  
 }
-
-            
+ 
 :
  item
         
@@ -525,9 +517,6 @@ quantity
 ;
 
     
-// Show notification
-
-    
 setCartNotification
 (
 `
@@ -560,9 +549,6 @@ setCartNotification
 ;
 
     
-// Open cart panel
-
-    
 setIsCartOpen
 (
 true
@@ -591,14 +577,18 @@ productId
     
 setCartItems
 (
+(
 prevItems
+)
  
 =>
  prevItems
 .
 filter
 (
+(
 item
+)
  
 =>
  item
@@ -661,7 +651,9 @@ else
       
 setCartItems
 (
+(
 prevItems
+)
  
 =>
 
@@ -669,7 +661,9 @@ prevItems
 .
 map
 (
+(
 item
+)
  
 =>
 
@@ -758,6 +752,42 @@ quantity
 ;
 
   
+const
+ 
+openCart
+ 
+=
+ 
+(
+)
+ 
+=>
+ 
+setIsCartOpen
+(
+true
+)
+;
+
+  
+const
+ 
+closeCart
+ 
+=
+ 
+(
+)
+ 
+=>
+ 
+setIsCartOpen
+(
+false
+)
+;
+
+  
 return
  
 (
@@ -777,11 +807,6 @@ className
 App
 "
 >
-
-        
-{
-/* Cart Notification */
-}
 
         
 {
@@ -906,15 +931,7 @@ isCartOpen
 onClose
 =
 {
-(
-)
- 
-=>
- 
-setIsCartOpen
-(
-false
-)
+closeCart
 }
 
           
@@ -950,174 +967,117 @@ Routes
 <
 Route
  
-            
 path
 =
 "
 /
 "
  
-            
 element
 =
 {
-
-              
 <
 HomePage
  
-                
 onCartClick
 =
 {
-(
-)
- 
-=>
- 
-setIsCartOpen
-(
-true
-)
+openCart
 }
  
-                
 cartCount
 =
 {
 cartCount
 }
-
-                
+ 
 addToCart
 =
 {
 addToCart
 }
-
-              
+ 
 />
-
-            
 }
  
-          
 />
 
           
 <
 Route
  
-            
 path
 =
 "
 /products
 "
  
-            
 element
 =
 {
-
-              
 <
 ProductsPage
  
-                
 addToCart
 =
 {
 addToCart
 }
  
-                
 onCartClick
 =
 {
-(
-)
- 
-=>
- 
-setIsCartOpen
-(
-true
-)
+openCart
 }
  
-                
 cartCount
 =
 {
 cartCount
 }
  
-              
 />
-
-            
 }
  
-          
 />
 
           
 <
 Route
  
-            
 path
 =
 "
 /product/:id
 "
  
-            
 element
 =
 {
-
-              
 <
 ProductDetail
  
-                
 addToCart
 =
 {
 addToCart
 }
  
-                
 onCartClick
 =
 {
-(
-)
- 
-=>
- 
-setIsCartOpen
-(
-true
-)
+openCart
 }
  
-                
 cartCount
 =
 {
 cartCount
 }
  
-              
 />
-
-            
 }
  
-          
 />
 
           
