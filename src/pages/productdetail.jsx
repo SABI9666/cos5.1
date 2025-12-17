@@ -5,41 +5,74 @@ import Footer from '../components/footer.jsx';
 import { getProducts } from '../services/api';
 import './productdetail.css';
 
-const ProductDetail = ({ addToCart, onCartClick, cartCount }) => {
-  const { id } = useParams();
-  const [product, setProduct] = useState(null);
-  const [quantity, setQuantity] = useState(1);
-  const [loading, setLoading] = useState(true);
+function ProductDetail(props) {
+  var addToCart = props.addToCart;
+  var onCartClick = props.onCartClick;
+  var cartCount = props.cartCount;
+  var params = useParams();
+  var id = params.id;
+  var productState = useState(null);
+  var product = productState[0];
+  var setProduct = productState[1];
+  var quantityState = useState(1);
+  var quantity = quantityState[0];
+  var setQuantity = quantityState[1];
+  var loadingState = useState(true);
+  var loading = loadingState[0];
+  var setLoading = loadingState[1];
+  var relatedState = useState([]);
+  var relatedProducts = relatedState[0];
+  var setRelatedProducts = relatedState[1];
+  var addedState = useState(false);
+  var addedToCart = addedState[0];
+  var setAddedToCart = addedState[1];
 
-  useEffect(() => {
+  useEffect(function() {
     loadProduct();
+    window.scrollTo(0, 0);
   }, [id]);
 
-  const loadProduct = async () => {
-    try {
-      const products = await getProducts();
-      const foundProduct = products.find(p => p.id === id);
+  function loadProduct() {
+    setLoading(true);
+    getProducts().then(function(products) {
+      var foundProduct = products.find(function(p) { return p.id === id; });
       setProduct(foundProduct);
+      if (foundProduct) {
+        var related = products.filter(function(p) { return p.category === foundProduct.category && p.id !== foundProduct.id; }).slice(0, 4);
+        setRelatedProducts(related);
+      }
       setLoading(false);
-    } catch (error) {
+    }).catch(function(error) {
       console.error('Error loading product:', error);
       setLoading(false);
-    }
-  };
+    });
+  }
 
-  const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
+  function handleAddToCart() {
+    for (var i = 0; i < quantity; i++) {
       addToCart(product);
     }
-  };
+    setAddedToCart(true);
+    setTimeout(function() { setAddedToCart(false); }, 2000);
+  }
+
+  function handleImageError(e) {
+    e.target.src = 'https://via.placeholder.com/800x800?text=LED+Product';
+  }
+
+  function decreaseQty() {
+    setQuantity(Math.max(1, quantity - 1));
+  }
+
+  function increaseQty() {
+    setQuantity(Math.min(product.quantity || 99, quantity + 1));
+  }
 
   if (loading) {
     return (
       <div className="product-detail-page">
         <Navbar onCartClick={onCartClick} cartCount={cartCount} />
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-        </div>
+        <div className="loading-container"><div className="loading-spinner"></div></div>
       </div>
     );
   }
@@ -50,8 +83,10 @@ const ProductDetail = ({ addToCart, onCartClick, cartCount }) => {
         <Navbar onCartClick={onCartClick} cartCount={cartCount} />
         <div className="not-found">
           <h2>Product Not Found</h2>
-          <Link to="/products" className="back-link">Back to Products</Link>
+          <p>Sorry, we could not find the product.</p>
+          <Link to="/products" className="back-link">Browse Products</Link>
         </div>
+        <Footer />
       </div>
     );
   }
@@ -59,7 +94,6 @@ const ProductDetail = ({ addToCart, onCartClick, cartCount }) => {
   return (
     <div className="product-detail-page">
       <Navbar onCartClick={onCartClick} cartCount={cartCount} />
-
       <div className="breadcrumb">
         <Link to="/">Home</Link>
         <span>/</span>
@@ -67,73 +101,70 @@ const ProductDetail = ({ addToCart, onCartClick, cartCount }) => {
         <span>/</span>
         <span>{product.name}</span>
       </div>
-
       <div className="product-detail-container">
         <div className="product-image-section">
-          <img src={product.imageUrl || 'https://via.placeholder.com/800'} alt={product.name} className="detail-image" />
+          <div className="image-wrapper">
+            <img src={product.imageUrl || 'https://via.placeholder.com/800'} alt={product.name} className="detail-image" onError={handleImageError} />
+            {product.badge && <span className="detail-badge">{product.badge}</span>}
+          </div>
         </div>
-
         <div className="product-info-section">
-          {product.badge && (
-            <span className="detail-badge">{product.badge}</span>
-          )}
+          <span className="detail-category">{product.category}</span>
           <h1 className="detail-title">{product.name}</h1>
-          <p className="detail-category">{product.category}</p>
-          
-          <div className="detail-price">&#8377;{product.price}</div>
-
+          <div className="detail-price">Rs.{product.price ? product.price.toLocaleString() : '0'}</div>
           <div className="detail-description">
             <h3>Description</h3>
             <p>{product.description}</p>
           </div>
-
           <div className="detail-specs">
             <h3>Specifications</h3>
-            <ul>
-              <li><strong>Category:</strong> {product.category}</li>
-              <li><strong>Stock:</strong> {product.quantity} units available</li>
-              <li><strong>Warranty:</strong> 2 years</li>
-              <li><strong>Energy Rating:</strong> A+</li>
-            </ul>
+            <div className="specs-grid">
+              <div className="spec-item"><span className="spec-label">Category</span><span className="spec-value">{product.category}</span></div>
+              <div className="spec-item"><span className="spec-label">Stock</span><span className="spec-value">{product.quantity} units</span></div>
+              <div className="spec-item"><span className="spec-label">Warranty</span><span className="spec-value">2 years</span></div>
+              <div className="spec-item"><span className="spec-label">Energy Rating</span><span className="spec-value">A+</span></div>
+            </div>
           </div>
-
           <div className="detail-actions">
             <div className="quantity-selector">
-              <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
+              <button onClick={decreaseQty} aria-label="Decrease quantity">-</button>
               <span>{quantity}</span>
-              <button onClick={() => setQuantity(Math.min(product.quantity, quantity + 1))}>+</button>
+              <button onClick={increaseQty} aria-label="Increase quantity">+</button>
             </div>
-            <button className="add-to-cart-large" onClick={handleAddToCart}>
-              Add to Cart
+            <button className={addedToCart ? "add-to-cart-large added" : "add-to-cart-large"} onClick={handleAddToCart} disabled={addedToCart}>
+              {addedToCart ? 'Added to Cart!' : 'Add to Cart'}
             </button>
           </div>
-
           <div className="detail-features">
-            <div className="feature-item">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span>Free shipping on orders over &#8377;2000</span>
-            </div>
-            <div className="feature-item">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span>30-day return policy</span>
-            </div>
-            <div className="feature-item">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span>2-year manufacturer warranty</span>
-            </div>
+            <div className="feature-item"><span>Free shipping on orders over Rs.2000</span></div>
+            <div className="feature-item"><span>30-day easy returns</span></div>
+            <div className="feature-item"><span>2-year manufacturer warranty</span></div>
           </div>
         </div>
       </div>
-
+      {relatedProducts.length > 0 && (
+        <section className="related-products">
+          <h2>Related Products</h2>
+          <div className="related-grid">
+            {relatedProducts.map(function(item) {
+              return (
+                <Link to={'/product/' + item.id} key={item.id} className="related-card">
+                  <div className="related-image">
+                    <img src={item.imageUrl || 'https://via.placeholder.com/200'} alt={item.name} onError={handleImageError} />
+                  </div>
+                  <div className="related-info">
+                    <h4>{item.name}</h4>
+                    <span className="related-price">Rs.{item.price ? item.price.toLocaleString() : '0'}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
       <Footer />
     </div>
   );
-};
+}
 
 export default ProductDetail;
