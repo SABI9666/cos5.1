@@ -5,14 +5,22 @@ var AuthContext = createContext(null);
 
 export function AuthProvider(props) {
   var children = props.children;
+  
   var userState = useState(null);
   var user = userState[0];
   var setUser = userState[1];
+  
   var loadingState = useState(true);
   var loading = loadingState[0];
   var setLoading = loadingState[1];
+  
+  var mountedState = useState(false);
+  var isMounted = mountedState[0];
+  var setIsMounted = mountedState[1];
 
   useEffect(function() {
+    setIsMounted(true);
+    
     var unsubscribe = onAuthChange(function(currentUser) {
       setUser(currentUser);
       setLoading(false);
@@ -26,7 +34,8 @@ export function AuthProvider(props) {
   var value = {
     user: user,
     loading: loading,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    isMounted: isMounted
   };
 
   return (
