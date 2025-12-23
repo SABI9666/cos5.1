@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/navbar.jsx';
 import Footer from '../components/footer.jsx';
+import EventsBanner from '../components/EventsBanner.jsx';
 import { getProducts } from '../services/api';
 import './homepage.css';
 
@@ -161,6 +162,9 @@ function HomePage(props) {
           <Link to="/products" className="cta-button">Explore Collection</Link>
         </div>
       </section>
+
+      {/* Events Banner - Promotional Slider */}
+      <EventsBanner />
 
       <section className="section category-section">
         <h2 className="section-title">Shop by Category</h2>
