@@ -12,28 +12,61 @@ import Cart from './components/cart.jsx';
 import './app.css';
 
 function App() {
-  const [cartItems, setCartItems] = useState(getInitialCart);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [cartNotification, setCartNotification] = useState('');
+  // Initialize with empty array to avoid hydration mismatch
+  var cartState = useState([]);
+  var cartItems = cartState[0];
+  var setCartItems = cartState[1];
+  
+  var cartOpenState = useState(false);
+  var isCartOpen = cartOpenState[0];
+  var setIsCartOpen = cartOpenState[1];
+  
+  var notificationState = useState('');
+  var cartNotification = notificationState[0];
+  var setCartNotification = notificationState[1];
+  
+  var mountedState = useState(false);
+  var isMounted = mountedState[0];
+  var setIsMounted = mountedState[1];
 
-  function getInitialCart() {
-    var savedCart = localStorage.getItem('luxeled-cart');
-    return savedCart ? JSON.parse(savedCart) : [];
-  }
+  // Load cart from localStorage ONLY after component mounts (client-side)
+  useEffect(function() {
+    setIsMounted(true);
+    try {
+      var savedCart = localStorage.getItem('luxeled-cart');
+      if (savedCart) {
+        var parsedCart = JSON.parse(savedCart);
+        if (Array.isArray(parsedCart)) {
+          setCartItems(parsedCart);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading cart:', error);
+    }
+  }, []);
 
-  useEffect(saveCart, [cartItems]);
-  function saveCart() {
-    localStorage.setItem('luxeled-cart', JSON.stringify(cartItems));
-  }
+  // Save cart to localStorage whenever it changes (but only after mounted)
+  useEffect(function() {
+    if (isMounted) {
+      try {
+        localStorage.setItem('luxeled-cart', JSON.stringify(cartItems));
+      } catch (error) {
+        console.error('Error saving cart:', error);
+      }
+    }
+  }, [cartItems, isMounted]);
 
-  useEffect(handleBodyScroll, [isCartOpen]);
-  function handleBodyScroll() {
-    document.body.style.overflow = isCartOpen ? 'hidden' : 'unset';
-    return resetScroll;
-  }
-  function resetScroll() {
-    document.body.style.overflow = 'unset';
-  }
+  // Handle body scroll when cart is open
+  useEffect(function() {
+    if (isCartOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return function() {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isCartOpen]);
 
   function addToCart(product) {
     var cartProduct = {
@@ -43,44 +76,49 @@ function App() {
       imageUrl: product.imageUrl || 'https://via.placeholder.com/100',
       category: product.category
     };
+    
     setCartItems(function(prev) {
-      var existing = prev.find(function(i) { return i.id === cartProduct.id; });
+      var existing = prev.find(function(item) {
+        return item.id === cartProduct.id;
+      });
+      
       if (existing) {
-        return prev.map(function(i) {
-          if (i.id === cartProduct.id) {
-            return Object.assign({}, i, { quantity: i.quantity + 1 });
+        return prev.map(function(item) {
+          if (item.id === cartProduct.id) {
+            return Object.assign({}, item, { quantity: item.quantity + 1 });
           }
-          return i;
+          return item;
         });
       }
       return prev.concat([Object.assign({}, cartProduct, { quantity: 1 })]);
     });
+    
     setCartNotification(product.name + ' added to cart!');
-    setTimeout(clearNotification, 2000);
+    setTimeout(function() {
+      setCartNotification('');
+    }, 2000);
     setIsCartOpen(true);
-  }
-
-  function clearNotification() {
-    setCartNotification('');
   }
 
   function removeFromCart(productId) {
     setCartItems(function(prev) {
-      return prev.filter(function(i) { return i.id !== productId; });
+      return prev.filter(function(item) {
+        return item.id !== productId;
+      });
     });
   }
 
-  function updateQuantity(productId, qty) {
-    if (qty === 0) {
+  function updateQuantity(productId, newQuantity) {
+    if (newQuantity === 0) {
       removeFromCart(productId);
       return;
     }
     setCartItems(function(prev) {
-      return prev.map(function(i) {
-        if (i.id === productId) {
-          return Object.assign({}, i, { quantity: qty });
+      return prev.map(function(item) {
+        if (item.id === productId) {
+          return Object.assign({}, item, { quantity: newQuantity });
         }
-        return i;
+        return item;
       });
     });
   }
@@ -90,7 +128,9 @@ function App() {
   }
 
   function getCartCount() {
-    return cartItems.reduce(function(t, i) { return t + i.quantity; }, 0);
+    return cartItems.reduce(function(total, item) {
+      return total + item.quantity;
+    }, 0);
   }
 
   function openCart() {
@@ -107,14 +147,15 @@ function App() {
     <AuthProvider>
       <Router>
         <div className="App">
-          {cartNotification ? (
+          {cartNotification && (
             <div className="cart-notification">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               {cartNotification}
             </div>
-          ) : null}
+          )}
+          
           <Cart 
             items={cartItems} 
             isOpen={isCartOpen} 
@@ -123,10 +164,29 @@ function App() {
             removeFromCart={removeFromCart} 
             clearCart={clearCart} 
           />
+          
           <Routes>
-            <Route path="/" element={<HomePage onCartClick={openCart} cartCount={cartCount} addToCart={addToCart} />} />
-            <Route path="/products" element={<ProductsPage addToCart={addToCart} onCartClick={openCart} cartCount={cartCount} />} />
-            <Route path="/product/:id" element={<ProductDetail addToCart={addToCart} onCartClick={openCart} cartCount={cartCount} />} />
+            <Route path="/" element={
+              <HomePage 
+                onCartClick={openCart} 
+                cartCount={cartCount} 
+                addToCart={addToCart} 
+              />
+            } />
+            <Route path="/products" element={
+              <ProductsPage 
+                addToCart={addToCart} 
+                onCartClick={openCart} 
+                cartCount={cartCount} 
+              />
+            } />
+            <Route path="/product/:id" element={
+              <ProductDetail 
+                addToCart={addToCart} 
+                onCartClick={openCart} 
+                cartCount={cartCount} 
+              />
+            } />
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/checkout" element={
@@ -137,7 +197,12 @@ function App() {
                 clearCart={clearCart}
               />
             } />
-            <Route path="/orders" element={<OrdersPage onCartClick={openCart} cartCount={cartCount} />} />
+            <Route path="/orders" element={
+              <OrdersPage 
+                onCartClick={openCart} 
+                cartCount={cartCount} 
+              />
+            } />
           </Routes>
         </div>
       </Router>
