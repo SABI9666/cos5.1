@@ -34,6 +34,7 @@ var googleProvider = new GoogleAuthProvider();
 var productsCollection = collection(db, 'led-products');
 var ordersCollection = collection(db, 'led-orders');
 var addressesCollection = collection(db, 'led-addresses');
+var eventsCollection = collection(db, 'led-events');
 
 // ==================== PRODUCT FUNCTIONS ====================
 
@@ -241,6 +242,102 @@ export var deleteAddress = async function(addressId) {
     await deleteDoc(addressRef);
   } catch (error) {
     console.error('Error deleting address:', error);
+    throw error;
+  }
+};
+
+// ==================== EVENTS FUNCTIONS ====================
+
+export var getEvents = async function() {
+  try {
+    var q = query(eventsCollection, orderBy('createdAt', 'desc'));
+    var snapshot = await getDocs(q);
+    return snapshot.docs.map(function(doc) {
+      return {
+        id: doc.id,
+        ...doc.data()
+      };
+    });
+  } catch (error) {
+    console.error('Error getting events:', error);
+    throw error;
+  }
+};
+
+export var getActiveEvents = async function() {
+  try {
+    var snapshot = await getDocs(eventsCollection);
+    var today = new Date().toISOString().split('T')[0];
+    var events = snapshot.docs.map(function(doc) {
+      return {
+        id: doc.id,
+        ...doc.data()
+      };
+    });
+    // Filter active events (endDate >= today or no endDate)
+    return events.filter(function(event) {
+      if (!event.isActive) return false;
+      if (!event.endDate) return true;
+      return event.endDate >= today;
+    }).sort(function(a, b) {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+  } catch (error) {
+    console.error('Error getting active events:', error);
+    throw error;
+  }
+};
+
+export var addEvent = async function(eventData) {
+  try {
+    var docRef = await addDoc(eventsCollection, {
+      ...eventData,
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error adding event:', error);
+    throw error;
+  }
+};
+
+export var updateEvent = async function(eventId, eventData) {
+  try {
+    var eventRef = doc(db, 'led-events', eventId);
+    await updateDoc(eventRef, {
+      ...eventData,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error updating event:', error);
+    throw error;
+  }
+};
+
+export var deleteEvent = async function(eventId) {
+  try {
+    var eventRef = doc(db, 'led-events', eventId);
+    await deleteDoc(eventRef);
+  } catch (error) {
+    console.error('Error deleting event:', error);
+    throw error;
+  }
+};
+
+export var uploadEventImage = async function(file) {
+  try {
+    var timestamp = Date.now();
+    var fileName = 'event_' + timestamp + '_' + file.name;
+    var storageRef = ref(storage, 'event-images/' + fileName);
+    
+    await uploadBytes(storageRef, file);
+    var downloadURL = await getDownloadURL(storageRef);
+    
+    return downloadURL;
+  } catch (error) {
+    console.error('Error uploading event image:', error);
     throw error;
   }
 };
