@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './cart.css';
 
 function Cart(props) {
@@ -8,6 +9,8 @@ function Cart(props) {
   var updateQuantity = props.updateQuantity;
   var removeFromCart = props.removeFromCart;
   var clearCart = props.clearCart;
+  
+  var navigate = useNavigate();
 
   var subtotal = items.reduce(function(sum, item) { return sum + (item.price * item.quantity); }, 0);
   var shipping = subtotal >= 2000 ? 0 : 99;
@@ -27,6 +30,11 @@ function Cart(props) {
 
   function handleRemove(item) {
     removeFromCart(item.id);
+  }
+
+  function handleCheckout() {
+    onClose();
+    navigate('/checkout');
   }
 
   return (
@@ -104,7 +112,7 @@ function Cart(props) {
                     <span className="total-amount">Rs.{total.toLocaleString()}</span>
                   </div>
                 </div>
-                <button className="checkout-btn">
+                <button className="checkout-btn" onClick={handleCheckout}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
                     <rect x="1" y="4" width="22" height="16" rx="2" ry="2" strokeLinecap="round" strokeLinejoin="round"/>
                     <line x1="1" y1="10" x2="23" y2="10" strokeLinecap="round" strokeLinejoin="round"/>
