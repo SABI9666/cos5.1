@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext.jsx';
 import HomePage from './pages/homepage.jsx';
 import ProductsPage from './pages/productspage.jsx';
 import ProductDetail from './pages/productdetail.jsx';
 import AdminPanel from './pages/adminpanel.jsx';
+import AuthPage from './pages/auth.jsx';
+import CheckoutPage from './pages/checkout.jsx';
+import OrdersPage from './pages/orders.jsx';
 import Cart from './components/cart.jsx';
 import './app.css';
 
@@ -100,25 +104,44 @@ function App() {
   var cartCount = getCartCount();
 
   return (
-    <Router>
-      <div className="App">
-        {cartNotification ? (
-          <div className="cart-notification">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            {cartNotification}
-          </div>
-        ) : null}
-        <Cart items={cartItems} isOpen={isCartOpen} onClose={closeCart} updateQuantity={updateQuantity} removeFromCart={removeFromCart} clearCart={clearCart} />
-        <Routes>
-          <Route path="/" element={<HomePage onCartClick={openCart} cartCount={cartCount} addToCart={addToCart} />} />
-          <Route path="/products" element={<ProductsPage addToCart={addToCart} onCartClick={openCart} cartCount={cartCount} />} />
-          <Route path="/product/:id" element={<ProductDetail addToCart={addToCart} onCartClick={openCart} cartCount={cartCount} />} />
-          <Route path="/admin" element={<AdminPanel />} />
-        </Routes>
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          {cartNotification ? (
+            <div className="cart-notification">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              {cartNotification}
+            </div>
+          ) : null}
+          <Cart 
+            items={cartItems} 
+            isOpen={isCartOpen} 
+            onClose={closeCart} 
+            updateQuantity={updateQuantity} 
+            removeFromCart={removeFromCart} 
+            clearCart={clearCart} 
+          />
+          <Routes>
+            <Route path="/" element={<HomePage onCartClick={openCart} cartCount={cartCount} addToCart={addToCart} />} />
+            <Route path="/products" element={<ProductsPage addToCart={addToCart} onCartClick={openCart} cartCount={cartCount} />} />
+            <Route path="/product/:id" element={<ProductDetail addToCart={addToCart} onCartClick={openCart} cartCount={cartCount} />} />
+            <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/checkout" element={
+              <CheckoutPage 
+                cartItems={cartItems} 
+                onCartClick={openCart} 
+                cartCount={cartCount}
+                clearCart={clearCart}
+              />
+            } />
+            <Route path="/orders" element={<OrdersPage onCartClick={openCart} cartCount={cartCount} />} />
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 
