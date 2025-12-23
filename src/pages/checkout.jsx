@@ -13,7 +13,7 @@ import Navbar from '../components/navbar.jsx';
 import './checkout.css';
 
 // ⚠️ REPLACE WITH YOUR RAZORPAY KEY
-const RAZORPAY_KEY_ID = 'rzp_test_YOUR_KEY_HERE';
+const RAZORPAY_KEY_ID = 'rzp_live_Rn3njwYwloBANB';
 
 function CheckoutPage({ cartItems, onCartClick, cartCount, clearCart }) {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
