@@ -177,18 +177,97 @@ export var getOrders = async function() {
     var snapshot = await getDocs(ordersCollection);
     return snapshot.docs.map(function(docSnap) {
       var data = docSnap.data();
+      
+      // Handle address - it might be an object or string
+      var addressStr = 'N/A';
+      if (data.address) {
+        if (typeof data.address === 'string') {
+          addressStr = data.address;
+        } else if (typeof data.address === 'object') {
+          var addrParts = [];
+          if (data.address.fullName) addrParts.push(data.address.fullName);
+          if (data.address.addressLine1) addrParts.push(data.address.addressLine1);
+          if (data.address.addressLine2) addrParts.push(data.address.addressLine2);
+          if (data.address.city) addrParts.push(data.address.city);
+          if (data.address.state) addrParts.push(data.address.state);
+          if (data.address.pincode) addrParts.push(data.address.pincode);
+          addressStr = addrParts.join(', ');
+        }
+      } else if (data.shippingAddress) {
+        if (typeof data.shippingAddress === 'string') {
+          addressStr = data.shippingAddress;
+        } else if (typeof data.shippingAddress === 'object') {
+          var shipParts = [];
+          if (data.shippingAddress.fullName) shipParts.push(data.shippingAddress.fullName);
+          if (data.shippingAddress.addressLine1) shipParts.push(data.shippingAddress.addressLine1);
+          if (data.shippingAddress.addressLine2) shipParts.push(data.shippingAddress.addressLine2);
+          if (data.shippingAddress.city) shipParts.push(data.shippingAddress.city);
+          if (data.shippingAddress.state) shipParts.push(data.shippingAddress.state);
+          if (data.shippingAddress.pincode) shipParts.push(data.shippingAddress.pincode);
+          addressStr = shipParts.join(', ');
+        }
+      }
+      
+      // Get customer name from address object if not directly available
+      var customerName = data.customerName || data.userName || data.name || null;
+      if (!customerName && data.address && typeof data.address === 'object' && data.address.fullName) {
+        customerName = data.address.fullName;
+      }
+      if (!customerName && data.shippingAddress && typeof data.shippingAddress === 'object' && data.shippingAddress.fullName) {
+        customerName = data.shippingAddress.fullName;
+      }
+      if (!customerName) {
+        customerName = 'N/A';
+      }
+      
+      // Get phone from address object if not directly available
+      var phone = data.phone || data.mobile || null;
+      if (!phone && data.address && typeof data.address === 'object' && data.address.phone) {
+        phone = data.address.phone;
+      }
+      if (!phone && data.shippingAddress && typeof data.shippingAddress === 'object' && data.shippingAddress.phone) {
+        phone = data.shippingAddress.phone;
+      }
+      if (!phone) {
+        phone = 'N/A';
+      }
+      
+      // Handle items array
+      var items = data.items || data.cartItems || [];
+      if (items && Array.isArray(items)) {
+        items = items.map(function(item) {
+          return {
+            name: item.name || item.productName || 'Unknown Item',
+            price: item.price || 0,
+            quantity: item.quantity || 1,
+            imageUrl: item.imageUrl || item.image || null
+          };
+        });
+      }
+      
+      // Handle payment details
+      var paymentStatus = data.paymentStatus || 'pending';
+      var paymentId = data.paymentId || data.razorpayPaymentId || null;
+      var transactionId = data.transactionId || data.razorpayOrderId || null;
+      
+      if (data.paymentDetails && typeof data.paymentDetails === 'object') {
+        if (data.paymentDetails.status) paymentStatus = data.paymentDetails.status;
+        if (data.paymentDetails.paymentId) paymentId = data.paymentDetails.paymentId;
+        if (data.paymentDetails.orderId) transactionId = data.paymentDetails.orderId;
+      }
+      
       return {
         id: docSnap.id,
-        customerName: data.customerName || data.userName || data.name || 'N/A',
+        customerName: customerName,
         email: data.email || data.userEmail || 'N/A',
-        phone: data.phone || data.mobile || 'N/A',
-        address: data.address || data.shippingAddress || 'N/A',
-        items: data.items || data.cartItems || [],
+        phone: phone,
+        address: addressStr,
+        items: items,
         totalAmount: data.totalAmount || data.total || 0,
-        paymentStatus: data.paymentStatus || data.paymentDetails?.status || 'pending',
-        paymentId: data.paymentId || data.paymentDetails?.paymentId || data.razorpayPaymentId || null,
+        paymentStatus: paymentStatus,
+        paymentId: paymentId,
         paymentMethod: data.paymentMethod || 'Razorpay',
-        transactionId: data.transactionId || data.paymentDetails?.orderId || data.razorpayOrderId || null,
+        transactionId: transactionId,
         status: data.status || 'pending',
         createdAt: data.createdAt,
         updatedAt: data.updatedAt
