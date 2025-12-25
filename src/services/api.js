@@ -171,6 +171,36 @@ export var createOrder = async function(orderData) {
   }
 };
 
+// Get all orders for admin panel
+export var getOrders = async function() {
+  try {
+    var snapshot = await getDocs(ordersCollection);
+    return snapshot.docs.map(function(docSnap) {
+      var data = docSnap.data();
+      return {
+        id: docSnap.id,
+        customerName: data.customerName || data.userName || data.name || 'N/A',
+        email: data.email || data.userEmail || 'N/A',
+        phone: data.phone || data.mobile || 'N/A',
+        address: data.address || data.shippingAddress || 'N/A',
+        items: data.items || data.cartItems || [],
+        totalAmount: data.totalAmount || data.total || 0,
+        paymentStatus: data.paymentStatus || data.paymentDetails?.status || 'pending',
+        paymentId: data.paymentId || data.paymentDetails?.paymentId || data.razorpayPaymentId || null,
+        paymentMethod: data.paymentMethod || 'Razorpay',
+        transactionId: data.transactionId || data.paymentDetails?.orderId || data.razorpayOrderId || null,
+        status: data.status || 'pending',
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt
+      };
+    });
+  } catch (error) {
+    console.error('Error getting orders:', error);
+    throw error;
+  }
+};
+
+// Update order status (for admin)
 export var updateOrderStatus = async function(orderId, status, paymentDetails) {
   try {
     var orderRef = doc(db, 'led-orders', orderId);
@@ -180,10 +210,25 @@ export var updateOrderStatus = async function(orderId, status, paymentDetails) {
     };
     if (paymentDetails) {
       updateData.paymentDetails = paymentDetails;
+      updateData.paymentStatus = paymentDetails.status || 'pending';
     }
     await updateDoc(orderRef, updateData);
   } catch (error) {
     console.error('Error updating order:', error);
+    throw error;
+  }
+};
+
+// Update just the order status (simpler version for admin dropdown)
+export var updateOrderStatusOnly = async function(orderId, newStatus) {
+  try {
+    var orderRef = doc(db, 'led-orders', orderId);
+    await updateDoc(orderRef, {
+      status: newStatus,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error updating order status:', error);
     throw error;
   }
 };
