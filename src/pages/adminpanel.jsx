@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getProducts, addProduct, updateProduct, deleteProduct, uploadImage } from '../services/api';
-import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { getProducts, addProduct, updateProduct, deleteProduct, uploadImage, getOrders, updateOrderStatus } from '../services/api';
 import AdminEvents from '../components/AdminEvents.jsx';
 import './adminpanel.css';
 
@@ -52,11 +50,7 @@ function AdminPanel() {
 
   function loadOrders() {
     setOrdersLoading(true);
-    getDocs(collection(db, 'orders')).then(function(snapshot) {
-      var ordersList = [];
-      snapshot.forEach(function(docSnap) {
-        ordersList.push(Object.assign({ id: docSnap.id }, docSnap.data()));
-      });
+    getOrders().then(function(ordersList) {
       ordersList.sort(function(a, b) {
         var dateA = a.createdAt ? new Date(a.createdAt.seconds * 1000) : new Date(0);
         var dateB = b.createdAt ? new Date(b.createdAt.seconds * 1000) : new Date(0);
@@ -71,7 +65,7 @@ function AdminPanel() {
   }
 
   function handleOrderStatus(orderId, newStatus) {
-    updateDoc(doc(db, 'orders', orderId), { status: newStatus }).then(function() {
+    updateOrderStatus(orderId, newStatus).then(function() {
       loadOrders();
     }).catch(function(error) {
       console.error('Error updating order:', error);
