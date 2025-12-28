@@ -25,7 +25,7 @@ function Footer() {
           <div className="footer-brand">
             <Link to="/" className="footer-logo">
               <span className="logo-icon">💡</span>
-              LUXELED
+              LAXORALED
             </Link>
             <p className="footer-description">
               Premium LED lighting solutions for modern living spaces. Transform your environment with energy-efficient, smart lighting technology.
@@ -133,7 +133,7 @@ function Footer() {
         {/* Footer Bottom */}
         <div className="footer-bottom">
           <div className="footer-bottom-content">
-            <p className="copyright">© 2025 LuxeLED. All rights reserved.</p>
+            <p className="copyright">© 2026 LaxoraLED. All rights reserved.</p>
             <div className="footer-bottom-links">
               <a href="#">Privacy Policy</a>
               <a href="#">Terms of Service</a>
