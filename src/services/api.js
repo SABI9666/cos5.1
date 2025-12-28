@@ -1,6 +1,6 @@
 // Firebase configuration and API functions
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy, setDoc, getDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { 
   getAuth, 
@@ -35,6 +35,7 @@ var productsCollection = collection(db, 'led-products');
 var ordersCollection = collection(db, 'led-orders');
 var addressesCollection = collection(db, 'led-addresses');
 var eventsCollection = collection(db, 'led-events');
+var categoriesCollection = collection(db, 'led-categories');
 
 // ==================== PRODUCT FUNCTIONS ====================
 
@@ -101,6 +102,103 @@ export var uploadImage = async function(file) {
     return downloadURL;
   } catch (error) {
     console.error('Error uploading image:', error);
+    throw error;
+  }
+};
+
+// ==================== CATEGORY FUNCTIONS ====================
+
+// Default categories list
+var defaultCategories = [
+  { id: 'wall-light', name: 'Wall Light', image: '' },
+  { id: 'fan', name: 'Fan', image: '' },
+  { id: 'hanging', name: 'Hanging', image: '' },
+  { id: 'gate-light', name: 'Gate Light', image: '' },
+  { id: 'bldc-fan', name: 'BLDC Fan', image: '' },
+  { id: 'wall-fan', name: 'Wall Fan', image: '' },
+  { id: 'wall-washer', name: 'Wall Washer', image: '' },
+  { id: 'bulb', name: 'Bulb', image: '' },
+  { id: 'surface-lights', name: 'Surface Lights', image: '' }
+];
+
+// Get all categories
+export var getCategories = async function() {
+  try {
+    var snapshot = await getDocs(categoriesCollection);
+    
+    if (snapshot.empty) {
+      // Return default categories if none exist in DB
+      return defaultCategories;
+    }
+    
+    var categoriesFromDB = snapshot.docs.map(function(docSnap) {
+      return { id: docSnap.id, ...docSnap.data() };
+    });
+    
+    // Merge with defaults to ensure all categories exist
+    var mergedCategories = defaultCategories.map(function(defaultCat) {
+      var dbCat = categoriesFromDB.find(function(c) { return c.id === defaultCat.id; });
+      if (dbCat) {
+        return dbCat;
+      }
+      return defaultCat;
+    });
+    
+    return mergedCategories;
+  } catch (error) {
+    console.error('Error getting categories:', error);
+    return defaultCategories;
+  }
+};
+
+// Update category (create if doesn't exist)
+export var updateCategory = async function(categoryId, categoryData) {
+  try {
+    var categoryRef = doc(db, 'led-categories', categoryId);
+    await setDoc(categoryRef, {
+      id: categoryId,
+      name: categoryData.name,
+      image: categoryData.image || ''
+    }, { merge: true });
+    return { id: categoryId, ...categoryData };
+  } catch (error) {
+    console.error('Error updating category:', error);
+    throw error;
+  }
+};
+
+// Upload category image
+export var uploadCategoryImage = async function(file) {
+  try {
+    var timestamp = Date.now();
+    var fileName = 'category_' + timestamp + '_' + file.name;
+    var storageRef = ref(storage, 'category-images/' + fileName);
+    
+    await uploadBytes(storageRef, file);
+    var downloadURL = await getDownloadURL(storageRef);
+    
+    return downloadURL;
+  } catch (error) {
+    console.error('Error uploading category image:', error);
+    throw error;
+  }
+};
+
+// Initialize default categories (optional - call once to set up)
+export var initializeCategories = async function() {
+  try {
+    for (var i = 0; i < defaultCategories.length; i++) {
+      var category = defaultCategories[i];
+      var categoryRef = doc(db, 'led-categories', category.id);
+      var docSnap = await getDoc(categoryRef);
+      
+      if (!docSnap.exists()) {
+        await setDoc(categoryRef, category);
+      }
+    }
+    console.log('Categories initialized successfully');
+  } catch (error) {
+    console.error('Error initializing categories:', error);
     throw error;
   }
 };
