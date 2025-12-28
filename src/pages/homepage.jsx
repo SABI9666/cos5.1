@@ -45,59 +45,140 @@ function HomePage(props) {
 
   var categories = [
     { 
-      id: 'strip',
-      name: 'LED Strip Lights', 
-      description: 'Flexible RGB lighting for ambient decoration',
-      icon: 'strip',
-      link: '/products?category=strip' 
+      id: 'wall-light',
+      name: 'Wall Light', 
+      description: 'Elegant wall-mounted lighting fixtures',
+      icon: 'wall-light',
+      link: '/products?category=wall-light' 
     },
     { 
-      id: 'bulbs',
-      name: 'Smart Bulbs', 
-      description: 'WiFi-enabled color-changing bulbs',
+      id: 'fan',
+      name: 'Fan', 
+      description: 'Premium ceiling fans with LED lights',
+      icon: 'fan',
+      link: '/products?category=fan' 
+    },
+    { 
+      id: 'hanging',
+      name: 'Hanging', 
+      description: 'Pendant & chandelier hanging lights',
+      icon: 'hanging',
+      link: '/products?category=hanging' 
+    },
+    { 
+      id: 'gate-light',
+      name: 'Gate Light', 
+      description: 'Outdoor gate & pillar lighting',
+      icon: 'gate-light',
+      link: '/products?category=gate-light' 
+    },
+    { 
+      id: 'bldc-fan',
+      name: 'BLDC Fan', 
+      description: 'Energy-efficient brushless DC fans',
+      icon: 'bldc-fan',
+      link: '/products?category=bldc-fan' 
+    },
+    { 
+      id: 'wall-fan',
+      name: 'Wall Fan', 
+      description: 'Space-saving wall-mounted fans',
+      icon: 'wall-fan',
+      link: '/products?category=wall-fan' 
+    },
+    { 
+      id: 'wall-washer',
+      name: 'Wall Washer', 
+      description: 'Professional wall wash lighting',
+      icon: 'wall-washer',
+      link: '/products?category=wall-washer' 
+    },
+    { 
+      id: 'bulb',
+      name: 'Bulb', 
+      description: 'LED bulbs for every fitting',
       icon: 'bulb',
-      link: '/products?category=bulbs' 
+      link: '/products?category=bulb' 
     },
     { 
-      id: 'panels',
-      name: 'Panel Lights', 
-      description: 'Modern ceiling & wall mounted panels',
-      icon: 'panel',
-      link: '/products?category=panels' 
-    },
-    { 
-      id: 'outdoor',
-      name: 'Outdoor Lighting', 
-      description: 'Weather-resistant garden & security lights',
-      icon: 'outdoor',
-      link: '/products?category=outdoor' 
-    },
-    { 
-      id: 'decorative',
-      name: 'Decorative Lights', 
-      description: 'Chandeliers, pendants & accent lighting',
-      icon: 'decorative',
-      link: '/products?category=decorative' 
-    },
-    { 
-      id: 'accessories',
-      name: 'Accessories', 
-      description: 'Controllers, dimmers & power supplies',
-      icon: 'accessories',
-      link: '/products?category=accessories' 
+      id: 'surface-lights',
+      name: 'Surface Lights', 
+      description: 'Modern surface-mounted fixtures',
+      icon: 'surface-lights',
+      link: '/products?category=surface-lights' 
     }
   ];
 
   function getCategoryIcon(iconType) {
     switch(iconType) {
-      case 'strip':
+      case 'wall-light':
         return (
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M2 12h20M2 12c0-1.5 1-3 3-3h14c2 0 3 1.5 3 3s-1 3-3 3H5c-2 0-3-1.5-3-3z" strokeLinecap="round" strokeLinejoin="round"/>
-            <circle cx="6" cy="12" r="1.5" fill="currentColor"/>
-            <circle cx="10" cy="12" r="1.5" fill="currentColor"/>
-            <circle cx="14" cy="12" r="1.5" fill="currentColor"/>
-            <circle cx="18" cy="12" r="1.5" fill="currentColor"/>
+            <path d="M3 12h2M5 6l1.5 1.5M12 3v2M19 6l-1.5 1.5M21 12h-2" strokeLinecap="round"/>
+            <path d="M12 8a4 4 0 0 1 4 4v4H8v-4a4 4 0 0 1 4-4z" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M8 16h8v2a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2z" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+      case 'fan':
+        return (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <circle cx="12" cy="12" r="3" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 9c0-3-2-5-2-7 4 0 6 3 6 7" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M15 12c3 0 5-2 7-2 0 4-3 6-7 6" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 15c0 3 2 5 2 7-4 0-6-3-6-7" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M9 12c-3 0-5 2-7 2 0-4 3-6 7-6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+      case 'hanging':
+        return (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M12 2v4" strokeLinecap="round"/>
+            <path d="M12 6l-4 4v4l4 4 4-4v-4l-4-4z" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M8 14l-2 1v2l6 3 6-3v-2l-2-1" strokeLinecap="round" strokeLinejoin="round"/>
+            <circle cx="12" cy="12" r="2" fill="currentColor"/>
+          </svg>
+        );
+      case 'gate-light':
+        return (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M6 22V8l6-5 6 5v14" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M6 12h12" strokeLinecap="round"/>
+            <path d="M9 22v-4h6v4" strokeLinecap="round" strokeLinejoin="round"/>
+            <circle cx="12" cy="8" r="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 6v-3" strokeLinecap="round"/>
+          </svg>
+        );
+      case 'bldc-fan':
+        return (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <circle cx="12" cy="12" r="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 10c-1-4-3-6-3-8 5 0 7 4 7 8" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M14 12c4-1 6-3 8-3 0 5-4 7-8 7" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 14c1 4 3 6 3 8-5 0-7-4-7-8" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M10 12c-4 1-6 3-8 3 0-5 4-7 8-7" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M3 21l2-2M21 21l-2-2" strokeLinecap="round"/>
+          </svg>
+        );
+      case 'wall-fan':
+        return (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <circle cx="12" cy="10" r="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 8c-.5-2-1.5-3-1.5-4 2.5 0 3.5 2 3.5 4" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M14 10c2-.5 3-1.5 4-1.5 0 2.5-2 3.5-4 3.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 12c.5 2 1.5 3 1.5 4-2.5 0-3.5-2-3.5-4" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M10 10c-2 .5-3 1.5-4 1.5 0-2.5 2-3.5 4-3.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <rect x="4" y="4" width="16" height="14" rx="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M10 18v3M14 18v3M8 21h8" strokeLinecap="round"/>
+          </svg>
+        );
+      case 'wall-washer':
+        return (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <rect x="4" y="4" width="16" height="6" rx="1" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M6 10v10M10 10v8M14 10v6M18 10v4" strokeLinecap="round" opacity="0.6"/>
+            <circle cx="7" cy="7" r="1" fill="currentColor"/>
+            <circle cx="11" cy="7" r="1" fill="currentColor"/>
+            <circle cx="15" cy="7" r="1" fill="currentColor"/>
           </svg>
         );
       case 'bulb':
@@ -107,35 +188,13 @@ function HomePage(props) {
             <path d="M12 3v1M5.6 5.6l.7.7M3 12h1M5.6 18.4l.7-.7M18.4 5.6l-.7.7M21 12h-1M18.4 18.4l-.7-.7" strokeLinecap="round"/>
           </svg>
         );
-      case 'panel':
+      case 'surface-lights':
         return (
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <rect x="3" y="3" width="18" height="18" rx="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M3 9h18M9 3v18" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        );
-      case 'outdoor':
-        return (
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" strokeLinecap="round"/>
-            <circle cx="12" cy="12" r="5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        );
-      case 'decorative':
-        return (
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M12 2L8 8h8l-4-6z" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M12 8v3" strokeLinecap="round"/>
-            <circle cx="12" cy="14" r="3" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M12 17v3M8 22h8" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M7 14l-2 1M17 14l2 1" strokeLinecap="round"/>
-          </svg>
-        );
-      case 'accessories':
-        return (
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <rect x="3" y="6" width="18" height="12" rx="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M7 10h10M7 14h10" strokeLinecap="round" opacity="0.6"/>
             <circle cx="12" cy="12" r="3" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 3v3M12 18v3" strokeLinecap="round"/>
           </svg>
         );
       default:
