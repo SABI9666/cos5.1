@@ -54,55 +54,55 @@ function HomePage(props) {
     { 
       id: 'wall-light',
       name: 'Wall Light', 
-      image: 'https://m.media-amazon.com/images/I/61Oy0SRHbyL._AC_UL480_FMwebp_QL65_.jpg',
+      image: 'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=300&h=300&fit=crop',
       link: '/products?category=wall-light' 
     },
     { 
       id: 'fan',
       name: 'Fan', 
-      image: 'https://m.media-amazon.com/images/I/61qLLdZOHPL._AC_UL480_FMwebp_QL65_.jpg',
+      image: 'https://images.unsplash.com/photo-1581783898377-1c85bf937427?w=300&h=300&fit=crop',
       link: '/products?category=fan' 
     },
     { 
       id: 'hanging',
       name: 'Hanging', 
-      image: 'https://m.media-amazon.com/images/I/71L9IJ9uc7L._AC_UL480_FMwebp_QL65_.jpg',
+      image: 'https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=300&h=300&fit=crop',
       link: '/products?category=hanging' 
     },
     { 
       id: 'gate-light',
       name: 'Gate Light', 
-      image: 'https://m.media-amazon.com/images/I/61gBmsKfGZL._AC_UL480_FMwebp_QL65_.jpg',
+      image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=300&fit=crop',
       link: '/products?category=gate-light' 
     },
     { 
       id: 'bldc-fan',
       name: 'BLDC Fan', 
-      image: 'https://m.media-amazon.com/images/I/51oTlM0SQBL._AC_UL480_FMwebp_QL65_.jpg',
+      image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=300&h=300&fit=crop',
       link: '/products?category=bldc-fan' 
     },
     { 
       id: 'wall-fan',
       name: 'Wall Fan', 
-      image: 'https://m.media-amazon.com/images/I/61H4M4XKv9L._AC_UL480_FMwebp_QL65_.jpg',
+      image: 'https://images.unsplash.com/photo-1523381294911-8d3cead13475?w=300&h=300&fit=crop',
       link: '/products?category=wall-fan' 
     },
     { 
       id: 'wall-washer',
       name: 'Wall Washer', 
-      image: 'https://m.media-amazon.com/images/I/51QK0hshqvL._AC_UL480_FMwebp_QL65_.jpg',
+      image: 'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=300&h=300&fit=crop',
       link: '/products?category=wall-washer' 
     },
     { 
       id: 'bulb',
       name: 'Bulb', 
-      image: 'https://m.media-amazon.com/images/I/71h0V-hYkuL._AC_UL480_FMwebp_QL65_.jpg',
+      image: 'https://images.unsplash.com/photo-1532007832200-86e3c0da7108?w=300&h=300&fit=crop',
       link: '/products?category=bulb' 
     },
     { 
       id: 'surface-lights',
       name: 'Surface Lights', 
-      image: 'https://m.media-amazon.com/images/I/41HMWLbpU6L._AC_UL480_FMwebp_QL65_.jpg',
+      image: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=300&h=300&fit=crop',
       link: '/products?category=surface-lights' 
     }
   ];
@@ -133,7 +133,7 @@ function HomePage(props) {
         <div className="hero-content">
           <div className="hero-badge">
             <span className="badge-dot"></span>
-            Premium Lighting Collection 2025
+            Premium Lighting Collection 2026
           </div>
           <h1 className="hero-title">
             <span className="title-line">Illuminate Your</span>
@@ -349,7 +349,7 @@ function HomePage(props) {
         <div className="promo-content">
           <div className="promo-badge">Limited Time Offer</div>
           <h2 className="promo-title">Get 20% Off on Your First Order</h2>
-          <p className="promo-text">Use code <span className="promo-code">LUXE20</span> at checkout</p>
+          <p className="promo-text">Use code <span className="promo-code">LAXORA20</span> at checkout</p>
           <Link to="/products" className="btn-light">
             Shop Now
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
