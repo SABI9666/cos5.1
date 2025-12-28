@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '../components/navbar.jsx';
 import Footer from '../components/footer.jsx';
 import EventsBanner from '../components/EventsBanner.jsx';
-import { getProducts } from '../services/api';
+import { getProducts, getCategories } from '../services/api';
 import './homepage.css';
 
 function HomePage(props) {
@@ -25,9 +25,25 @@ function HomePage(props) {
 
   var heroRef = useRef(null);
 
+  // Categories state - fetched from Firebase
+  var categoriesState = useState([
+    { id: 'wall-light', name: 'Wall Light', image: '', link: '/products?category=wall-light' },
+    { id: 'fan', name: 'Fan', image: '', link: '/products?category=fan' },
+    { id: 'hanging', name: 'Hanging', image: '', link: '/products?category=hanging' },
+    { id: 'gate-light', name: 'Gate Light', image: '', link: '/products?category=gate-light' },
+    { id: 'bldc-fan', name: 'BLDC Fan', image: '', link: '/products?category=bldc-fan' },
+    { id: 'wall-fan', name: 'Wall Fan', image: '', link: '/products?category=wall-fan' },
+    { id: 'wall-washer', name: 'Wall Washer', image: '', link: '/products?category=wall-washer' },
+    { id: 'bulb', name: 'Bulb', image: '', link: '/products?category=bulb' },
+    { id: 'surface-lights', name: 'Surface Lights', image: '', link: '/products?category=surface-lights' }
+  ]);
+  var categories = categoriesState[0];
+  var setCategories = categoriesState[1];
+
   useEffect(function() {
     setIsVisible(true);
     loadFeaturedProducts();
+    loadCategoriesData();
   }, []);
 
   function loadFeaturedProducts() {
@@ -40,6 +56,24 @@ function HomePage(props) {
     });
   }
 
+  function loadCategoriesData() {
+    getCategories().then(function(data) {
+      if (data && data.length > 0) {
+        var updatedCategories = data.map(function(cat) {
+          return {
+            id: cat.id,
+            name: cat.name,
+            image: cat.image || '',
+            link: '/products?category=' + cat.id
+          };
+        });
+        setCategories(updatedCategories);
+      }
+    }).catch(function(error) {
+      console.error('Error loading categories:', error);
+    });
+  }
+
   function handleImageError(e) {
     e.target.src = 'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=400';
   }
@@ -49,63 +83,6 @@ function HomePage(props) {
     e.stopPropagation();
     addToCart(product);
   }
-
-  var categories = [
-    { 
-      id: 'wall-light',
-      name: 'Wall Light', 
-      image: 'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=300&h=300&fit=crop',
-      link: '/products?category=wall-light' 
-    },
-    { 
-      id: 'fan',
-      name: 'Fan', 
-      image: 'https://images.unsplash.com/photo-1581783898377-1c85bf937427?w=300&h=300&fit=crop',
-      link: '/products?category=fan' 
-    },
-    { 
-      id: 'hanging',
-      name: 'Hanging', 
-      image: 'https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=300&h=300&fit=crop',
-      link: '/products?category=hanging' 
-    },
-    { 
-      id: 'gate-light',
-      name: 'Gate Light', 
-      image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=300&fit=crop',
-      link: '/products?category=gate-light' 
-    },
-    { 
-      id: 'bldc-fan',
-      name: 'BLDC Fan', 
-      image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=300&h=300&fit=crop',
-      link: '/products?category=bldc-fan' 
-    },
-    { 
-      id: 'wall-fan',
-      name: 'Wall Fan', 
-      image: 'https://images.unsplash.com/photo-1523381294911-8d3cead13475?w=300&h=300&fit=crop',
-      link: '/products?category=wall-fan' 
-    },
-    { 
-      id: 'wall-washer',
-      name: 'Wall Washer', 
-      image: 'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=300&h=300&fit=crop',
-      link: '/products?category=wall-washer' 
-    },
-    { 
-      id: 'bulb',
-      name: 'Bulb', 
-      image: 'https://images.unsplash.com/photo-1532007832200-86e3c0da7108?w=300&h=300&fit=crop',
-      link: '/products?category=bulb' 
-    },
-    { 
-      id: 'surface-lights',
-      name: 'Surface Lights', 
-      image: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=300&h=300&fit=crop',
-      link: '/products?category=surface-lights' 
-    }
-  ];
 
   var stats = [
     { number: '50K+', label: 'Happy Customers' },
@@ -194,7 +171,17 @@ function HomePage(props) {
                   className="category-item"
                 >
                   <div className="category-circle">
-                    <img src={category.image} alt={category.name} className="category-image" />
+                    {category.image ? (
+                      <img src={category.image} alt={category.name} className="category-image" />
+                    ) : (
+                      <div className="category-placeholder-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                          <circle cx="8.5" cy="8.5" r="1.5"/>
+                          <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                      </div>
+                    )}
                   </div>
                   <span className="category-name">{category.name}</span>
                 </Link>
