@@ -54,43 +54,55 @@ function HomePage(props) {
     { 
       id: 'wall-light',
       name: 'Wall Light', 
-      description: 'Elegant wall-mounted fixtures',
-      image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600',
+      image: 'https://m.media-amazon.com/images/I/61Oy0SRHbyL._AC_UL480_FMwebp_QL65_.jpg',
       link: '/products?category=wall-light' 
     },
     { 
       id: 'fan',
       name: 'Fan', 
-      description: 'Premium ceiling fans',
-      image: 'https://images.unsplash.com/photo-1622372738946-62e02505feb3?w=600',
+      image: 'https://m.media-amazon.com/images/I/61qLLdZOHPL._AC_UL480_FMwebp_QL65_.jpg',
       link: '/products?category=fan' 
     },
     { 
       id: 'hanging',
       name: 'Hanging', 
-      description: 'Pendant & chandeliers',
-      image: 'https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=600',
+      image: 'https://m.media-amazon.com/images/I/71L9IJ9uc7L._AC_UL480_FMwebp_QL65_.jpg',
       link: '/products?category=hanging' 
     },
     { 
       id: 'gate-light',
       name: 'Gate Light', 
-      description: 'Outdoor gate lighting',
-      image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600',
+      image: 'https://m.media-amazon.com/images/I/61gBmsKfGZL._AC_UL480_FMwebp_QL65_.jpg',
       link: '/products?category=gate-light' 
     },
     { 
       id: 'bldc-fan',
       name: 'BLDC Fan', 
-      description: 'Energy-efficient fans',
-      image: 'https://images.unsplash.com/photo-1635108200979-05da6600dc8c?w=600',
+      image: 'https://m.media-amazon.com/images/I/51oTlM0SQBL._AC_UL480_FMwebp_QL65_.jpg',
       link: '/products?category=bldc-fan' 
+    },
+    { 
+      id: 'wall-fan',
+      name: 'Wall Fan', 
+      image: 'https://m.media-amazon.com/images/I/61H4M4XKv9L._AC_UL480_FMwebp_QL65_.jpg',
+      link: '/products?category=wall-fan' 
+    },
+    { 
+      id: 'wall-washer',
+      name: 'Wall Washer', 
+      image: 'https://m.media-amazon.com/images/I/51QK0hshqvL._AC_UL480_FMwebp_QL65_.jpg',
+      link: '/products?category=wall-washer' 
+    },
+    { 
+      id: 'bulb',
+      name: 'Bulb', 
+      image: 'https://m.media-amazon.com/images/I/71h0V-hYkuL._AC_UL480_FMwebp_QL65_.jpg',
+      link: '/products?category=bulb' 
     },
     { 
       id: 'surface-lights',
       name: 'Surface Lights', 
-      description: 'Modern surface fixtures',
-      image: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=600',
+      image: 'https://m.media-amazon.com/images/I/41HMWLbpU6L._AC_UL480_FMwebp_QL65_.jpg',
       link: '/products?category=surface-lights' 
     }
   ];
@@ -166,38 +178,25 @@ function HomePage(props) {
       {/* Events Banner */}
       <EventsBanner />
 
-      {/* Categories Section */}
+      {/* Categories Section - Kohl's Style */}
       <section className="categories-section">
         <div className="section-container">
           <div className="section-header">
-            <div className="section-label">Categories</div>
-            <h2 className="section-title">Shop by Category</h2>
-            <p className="section-subtitle">Find the perfect lighting for every corner of your home</p>
+            <h2 className="section-title">What are you looking for?</h2>
           </div>
           
-          <div className="categories-grid">
+          <div className="categories-scroll">
             {categories.map(function(category, index) {
               return (
                 <Link 
                   to={category.link} 
                   key={category.id} 
-                  className="category-card"
-                  style={{ animationDelay: (index * 0.1) + 's' }}
+                  className="category-item"
                 >
-                  <div className="category-image-wrapper">
+                  <div className="category-circle">
                     <img src={category.image} alt={category.name} className="category-image" />
-                    <div className="category-overlay"></div>
                   </div>
-                  <div className="category-content">
-                    <h3 className="category-name">{category.name}</h3>
-                    <p className="category-desc">{category.description}</p>
-                    <span className="category-link">
-                      Shop Now
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </span>
-                  </div>
+                  <span className="category-name">{category.name}</span>
                 </Link>
               );
             })}
