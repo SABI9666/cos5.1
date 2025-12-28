@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getProducts, addProduct, updateProduct, deleteProduct, uploadImage, getOrders, updateOrderStatus } from '../services/api';
+import { getProducts, addProduct, updateProduct, deleteProduct, uploadImage, getOrders, updateOrderStatus, getCategories, updateCategory } from '../services/api';
 import AdminEvents from '../components/AdminEvents.jsx';
 import './adminpanel.css';
 
@@ -39,9 +39,33 @@ function AdminPanel() {
   var ordersLoading = ordersLoadingState[0];
   var setOrdersLoading = ordersLoadingState[1];
 
+  // Category management states
+  var categoriesState = useState([
+    { id: 'wall-light', name: 'Wall Light', image: '' },
+    { id: 'fan', name: 'Fan', image: '' },
+    { id: 'hanging', name: 'Hanging', image: '' },
+    { id: 'gate-light', name: 'Gate Light', image: '' },
+    { id: 'bldc-fan', name: 'BLDC Fan', image: '' },
+    { id: 'wall-fan', name: 'Wall Fan', image: '' },
+    { id: 'wall-washer', name: 'Wall Washer', image: '' },
+    { id: 'bulb', name: 'Bulb', image: '' },
+    { id: 'surface-lights', name: 'Surface Lights', image: '' }
+  ]);
+  var categories = categoriesState[0];
+  var setCategories = categoriesState[1];
+  
+  var categoryLoadingState = useState({});
+  var categoryLoading = categoryLoadingState[0];
+  var setCategoryLoading = categoryLoadingState[1];
+  
+  var categorySavedState = useState({});
+  var categorySaved = categorySavedState[0];
+  var setCategorySaved = categorySavedState[1];
+
   useEffect(function() { 
     loadProducts(); 
     loadOrders();
+    loadCategoriesData();
   }, []);
 
   function loadProducts() {
@@ -61,6 +85,115 @@ function AdminPanel() {
     }).catch(function(error) {
       console.error('Error loading orders:', error);
       setOrdersLoading(false);
+    });
+  }
+
+  function loadCategoriesData() {
+    getCategories().then(function(data) {
+      if (data && data.length > 0) {
+        setCategories(data);
+      }
+    }).catch(function(error) {
+      console.error('Error loading categories:', error);
+    });
+  }
+
+  function handleCategoryImageUpload(categoryId, e) {
+    var file = e.target.files[0];
+    if (file) {
+      var newLoading = {};
+      Object.keys(categoryLoading).forEach(function(key) {
+        newLoading[key] = categoryLoading[key];
+      });
+      newLoading[categoryId] = true;
+      setCategoryLoading(newLoading);
+      
+      uploadImage(file).then(function(imageUrl) {
+        var updatedCategories = categories.map(function(cat) {
+          if (cat.id === categoryId) {
+            return { id: cat.id, name: cat.name, image: imageUrl };
+          }
+          return cat;
+        });
+        setCategories(updatedCategories);
+        
+        var categoryToUpdate = updatedCategories.find(function(c) { return c.id === categoryId; });
+        return updateCategory(categoryId, categoryToUpdate);
+      }).then(function() {
+        var newLoadingDone = {};
+        Object.keys(categoryLoading).forEach(function(key) {
+          newLoadingDone[key] = categoryLoading[key];
+        });
+        newLoadingDone[categoryId] = false;
+        setCategoryLoading(newLoadingDone);
+        
+        var newSaved = {};
+        Object.keys(categorySaved).forEach(function(key) {
+          newSaved[key] = categorySaved[key];
+        });
+        newSaved[categoryId] = true;
+        setCategorySaved(newSaved);
+        
+        setTimeout(function() {
+          var resetSaved = {};
+          Object.keys(categorySaved).forEach(function(key) {
+            resetSaved[key] = categorySaved[key];
+          });
+          resetSaved[categoryId] = false;
+          setCategorySaved(resetSaved);
+        }, 2000);
+      }).catch(function(error) {
+        console.error('Error uploading category image:', error);
+        var newLoadingError = {};
+        Object.keys(categoryLoading).forEach(function(key) {
+          newLoadingError[key] = categoryLoading[key];
+        });
+        newLoadingError[categoryId] = false;
+        setCategoryLoading(newLoadingError);
+        alert('Error uploading image. Please try again.');
+      });
+    }
+  }
+
+  function handleCategoryImageUrl(categoryId, imageUrl) {
+    var updatedCategories = categories.map(function(cat) {
+      if (cat.id === categoryId) {
+        return { id: cat.id, name: cat.name, image: imageUrl };
+      }
+      return cat;
+    });
+    setCategories(updatedCategories);
+  }
+
+  function saveCategoryUrl(categoryId) {
+    var newLoading = {};
+    Object.keys(categoryLoading).forEach(function(key) {
+      newLoading[key] = categoryLoading[key];
+    });
+    newLoading[categoryId] = true;
+    setCategoryLoading(newLoading);
+    
+    var categoryToUpdate = categories.find(function(c) { return c.id === categoryId; });
+    updateCategory(categoryId, categoryToUpdate).then(function() {
+      var newLoadingDone = {};
+      newLoadingDone[categoryId] = false;
+      setCategoryLoading(newLoadingDone);
+      
+      var newSaved = {};
+      newSaved[categoryId] = true;
+      setCategorySaved(newSaved);
+      
+      setTimeout(function() {
+        var resetSaved = {};
+        resetSaved[categoryId] = false;
+        setCategorySaved(resetSaved);
+      }, 2000);
+    }).catch(function(error) {
+      console.error('Error saving category:', error);
+      var newLoadingError = {};
+      newLoadingError[categoryId] = false;
+      setCategoryLoading(newLoadingError);
+      alert('Error saving category. Please try again.');
     });
   }
 
@@ -195,7 +328,7 @@ function AdminPanel() {
   return (
     <div className="admin-panel">
       <div className="admin-header">
-        <h1>LED Store Admin Panel</h1>
+        <h1>LaxoraLED Admin Panel</h1>
         <div className="admin-header-actions">
           <Link to="/" className="back-to-store-btn">Back to Store</Link>
         </div>
@@ -210,6 +343,18 @@ function AdminPanel() {
             <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           Products
+        </button>
+        <button 
+          className={activeTab === 'categories' ? 'admin-tab active' : 'admin-tab'}
+          onClick={function() { setActiveTab('categories'); }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/>
+            <rect x="14" y="14" width="7" height="7" rx="1"/>
+          </svg>
+          Categories
         </button>
         <button 
           className={activeTab === 'orders' ? 'admin-tab active' : 'admin-tab'}
@@ -289,64 +434,180 @@ function AdminPanel() {
                   </div>
                   <div className="form-row">
                     <div className="form-group">
-                      <label>Price (Rs.) *</label>
-                      <input type="number" name="price" value={formData.price} onChange={handleInputChange} required min="0" step="0.01" placeholder="0.00" />
+                      <label>Price (₹) *</label>
+                      <input type="number" name="price" value={formData.price} onChange={handleInputChange} required min="0" placeholder="e.g., 999" />
                     </div>
                     <div className="form-group">
-                      <label>Quantity *</label>
-                      <input type="number" name="quantity" value={formData.quantity} onChange={handleInputChange} required min="0" placeholder="0" />
+                      <label>Stock Quantity *</label>
+                      <input type="number" name="quantity" value={formData.quantity} onChange={handleInputChange} required min="0" placeholder="e.g., 50" />
                     </div>
                     <div className="form-group">
-                      <label>Badge (Optional)</label>
-                      <input type="text" name="badge" value={formData.badge} onChange={handleInputChange} placeholder="e.g., New, Sale -20%" />
+                      <label>Badge (optional)</label>
+                      <input type="text" name="badge" value={formData.badge} onChange={handleInputChange} placeholder="e.g., NEW, SALE" />
                     </div>
                   </div>
                   <div className="form-group">
                     <label>Product Image</label>
-                    <input type="file" accept="image/*" onChange={handleImageChange} className="file-input" />
-                    {imagePreview && <div className="image-preview"><img src={imagePreview} alt="Preview" /></div>}
+                    <div className="image-upload-section">
+                      {imagePreview && (
+                        <div className="image-preview">
+                          <img src={imagePreview} alt="Preview" />
+                        </div>
+                      )}
+                      <div className="upload-options">
+                        <input type="file" accept="image/*" onChange={handleImageChange} id="product-image" className="file-input" />
+                        <label htmlFor="product-image" className="upload-btn">Choose Image</label>
+                        <span className="or-text">or</span>
+                        <input type="text" name="imageUrl" value={formData.imageUrl} onChange={handleInputChange} placeholder="Paste image URL" className="url-input" />
+                      </div>
+                    </div>
                   </div>
                   <div className="form-actions">
                     <button type="button" onClick={resetForm} className="cancel-btn">Cancel</button>
-                    <button type="submit" className="submit-btn" disabled={loading}>{loading ? 'Saving...' : (editingProduct ? 'Update Product' : 'Add Product')}</button>
+                    <button type="submit" className="submit-btn" disabled={loading}>
+                      {loading ? 'Saving...' : (editingProduct ? 'Update Product' : 'Add Product')}
+                    </button>
                   </div>
                 </form>
               </div>
             </div>
           )}
-          
-          <div className="products-table-container">
+
+          {products.length === 0 ? (
+            <div className="empty-state-container">
+              <div className="empty-state">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <h3>No Products Yet</h3>
+                <p>Add your first product to get started!</p>
+                <button className="add-product-btn" onClick={openForm}>+ Add Product</button>
+              </div>
+            </div>
+          ) : (
             <div className="products-table">
               <div className="table-header">
                 <div className="table-cell">Image</div>
-                <div className="table-cell">Name</div>
+                <div className="table-cell">Product</div>
                 <div className="table-cell">Category</div>
                 <div className="table-cell">Price</div>
-                <div className="table-cell">Quantity</div>
+                <div className="table-cell">Stock</div>
                 <div className="table-cell">Actions</div>
               </div>
-              {products.length === 0 ? (
-                <div className="no-products">
-                  <p>No products yet. Click "Add New Product" to get started.</p>
-                </div>
-              ) : (
-                products.map(function(product) {
-                  return (
-                    <div key={product.id} className="table-row">
-                      <div className="table-cell"><img src={product.imageUrl || 'https://via.placeholder.com/60'} alt={product.name} className="product-thumbnail" /></div>
-                      <div className="table-cell"><strong>{product.name}</strong>{product.badge && <span className="mini-badge">{product.badge}</span>}</div>
-                      <div className="table-cell">{product.category}</div>
-                      <div className="table-cell">Rs.{product.price}</div>
-                      <div className="table-cell"><span className={product.quantity < 10 ? "stock-badge low-stock" : "stock-badge"}>{product.quantity} units</span></div>
-                      <div className="table-cell actions">
-                        <button className="edit-btn" onClick={function() { handleEdit(product); }}>Edit</button>
-                        <button className="delete-btn" onClick={function() { handleDelete(product.id); }}>Delete</button>
+              {products.map(function(product) {
+                return (
+                  <div key={product.id} className="table-row">
+                    <div className="table-cell" data-label="Image">
+                      <img src={product.imageUrl || 'https://via.placeholder.com/60'} alt={product.name} className="product-thumb" />
+                    </div>
+                    <div className="table-cell" data-label="Product">
+                      <div className="product-name-cell">
+                        <span className="product-name">{product.name}</span>
+                        {product.badge && <span className="product-badge">{product.badge}</span>}
                       </div>
                     </div>
-                  );
-                })
-              )}
+                    <div className="table-cell" data-label="Category">
+                      <span className="category-tag">{product.category}</span>
+                    </div>
+                    <div className="table-cell" data-label="Price">₹{product.price ? product.price.toLocaleString() : '0'}</div>
+                    <div className="table-cell" data-label="Stock">
+                      <span className={product.quantity > 10 ? 'stock-badge in-stock' : product.quantity > 0 ? 'stock-badge low-stock' : 'stock-badge out-of-stock'}>
+                        {product.quantity > 0 ? product.quantity + ' units' : 'Out of Stock'}
+                      </span>
+                    </div>
+                    <div className="table-cell actions" data-label="Actions">
+                      <button className="edit-btn" onClick={function() { handleEdit(product); }}>Edit</button>
+                      <button className="delete-btn" onClick={function() { handleDelete(product.id); }}>Delete</button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
+          )}
+        </>
+      )}
+
+      {activeTab === 'categories' && (
+        <>
+          <div className="tab-header">
+            <h2>Category Images</h2>
+            <p className="tab-subtitle">Manage images for "What are you looking for?" section on homepage</p>
+          </div>
+          
+          <div className="categories-management">
+            {categories.map(function(category) {
+              return (
+                <div key={category.id} className="category-edit-card">
+                  <div className="category-preview-box">
+                    {category.image ? (
+                      <img src={category.image} alt={category.name} className="category-preview-img" />
+                    ) : (
+                      <div className="category-placeholder">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                          <circle cx="8.5" cy="8.5" r="1.5"/>
+                          <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                        <span>No Image</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="category-edit-content">
+                    <h3 className="category-edit-name">{category.name}</h3>
+                    <div className="category-image-form">
+                      <div className="url-input-group">
+                        <input 
+                          type="text" 
+                          value={category.image || ''} 
+                          onChange={function(e) { handleCategoryImageUrl(category.id, e.target.value); }}
+                          placeholder="Paste image URL here..."
+                          className="category-url-input"
+                        />
+                        <button 
+                          className="save-url-btn"
+                          onClick={function() { saveCategoryUrl(category.id); }}
+                          disabled={categoryLoading[category.id]}
+                        >
+                          {categoryLoading[category.id] ? 'Saving...' : 'Save'}
+                        </button>
+                      </div>
+                      <div className="upload-divider"><span>OR</span></div>
+                      <div className="category-file-upload">
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={function(e) { handleCategoryImageUpload(category.id, e); }}
+                          id={'cat-upload-' + category.id}
+                          className="file-input"
+                        />
+                        <label htmlFor={'cat-upload-' + category.id} className="category-upload-btn">
+                          {categoryLoading[category.id] ? (
+                            <span>Uploading...</span>
+                          ) : (
+                            <>
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                              </svg>
+                              Upload Image
+                            </>
+                          )}
+                        </label>
+                      </div>
+                    </div>
+                    {categorySaved[category.id] && (
+                      <div className="category-saved-msg">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Saved successfully!
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </>
       )}
@@ -355,12 +616,6 @@ function AdminPanel() {
         <>
           <div className="tab-header">
             <h2>Orders ({orders.length})</h2>
-            <button className="add-product-btn" onClick={loadOrders}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight: '8px'}}>
-                <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Refresh
-            </button>
           </div>
           
           {ordersLoading ? (
@@ -379,7 +634,7 @@ function AdminPanel() {
               </div>
             </div>
           ) : (
-            <div className="orders-container">
+            <div className="orders-grid">
               {orders.map(function(order) {
                 return (
                   <div key={order.id} className="order-card">
