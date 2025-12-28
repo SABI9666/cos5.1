@@ -23,7 +23,7 @@ function AdminPanel() {
   var imagePreviewState = useState(null);
   var imagePreview = imagePreviewState[0];
   var setImagePreview = imagePreviewState[1];
-  var formDataState = useState({ name: '', description: '', price: '', category: 'strip', quantity: '', imageUrl: '', badge: '' });
+  var formDataState = useState({ name: '', description: '', price: '', category: 'wall-light', quantity: '', imageUrl: '', badge: '' });
   var formData = formDataState[0];
   var setFormData = formDataState[1];
   
@@ -185,7 +185,7 @@ function AdminPanel() {
   function resetForm() {
     setIsFormOpen(false);
     setEditingProduct(null);
-    setFormData({ name: '', description: '', price: '', category: 'strip', quantity: '', imageUrl: '', badge: '' });
+    setFormData({ name: '', description: '', price: '', category: 'wall-light', quantity: '', imageUrl: '', badge: '' });
     setImageFile(null);
     setImagePreview(null);
   }
@@ -271,12 +271,15 @@ function AdminPanel() {
                     <div className="form-group">
                       <label>Category *</label>
                       <select name="category" value={formData.category} onChange={handleInputChange} required>
-                        <option value="strip">LED Strip Lights</option>
-                        <option value="bulbs">Smart Bulbs</option>
-                        <option value="panels">Panel Lights</option>
-                        <option value="outdoor">Outdoor Lighting</option>
-                        <option value="decorative">Decorative</option>
-                        <option value="accessories">Accessories</option>
+                        <option value="wall-light">Wall Light</option>
+                        <option value="fan">Fan</option>
+                        <option value="hanging">Hanging</option>
+                        <option value="gate-light">Gate Light</option>
+                        <option value="bldc-fan">BLDC Fan</option>
+                        <option value="wall-fan">Wall Fan</option>
+                        <option value="wall-washer">Wall Washer</option>
+                        <option value="bulb">Bulb</option>
+                        <option value="surface-lights">Surface Lights</option>
                       </select>
                     </div>
                   </div>
