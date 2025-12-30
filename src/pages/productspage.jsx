@@ -91,10 +91,12 @@ function ProductsPage(props) {
   }
 
   function handleImageError(e) {
-    e.target.src = 'https://via.placeholder.com/300x300?text=LED+Light';
+    e.target.src = 'https://via.placeholder.com/400x400?text=LED+Light';
   }
 
-  function handleAddToCart(product) {
+  function handleAddToCart(e, product) {
+    e.preventDefault();
+    e.stopPropagation();
     if (addToCart) {
       addToCart(product);
     }
@@ -308,48 +310,59 @@ function ProductsPage(props) {
               <div className="products-grid">
                 {filteredProducts.map(function(product) {
                   return (
-                    <div key={product.id} className="product-card">
-                      <div className="product-image">
-                        <Link to={'/product/' + product.id}>
+                    <Link to={'/product/' + product.id} key={product.id} className="product-card">
+                      {/* Product Image */}
+                      <div className="product-image-wrapper">
+                        <div className="product-image">
                           <img 
-                            src={product.imageUrl || 'https://via.placeholder.com/300'} 
+                            src={product.imageUrl || 'https://via.placeholder.com/400x400?text=LED+Light'} 
                             alt={product.name}
                             onError={handleImageError}
                           />
-                        </Link>
+                        </div>
+                        {product.badge && (
+                          <span className="product-badge">{product.badge}</span>
+                        )}
                         {product.discount && (
                           <span className="product-badge sale">{product.discount}% OFF</span>
                         )}
-                        {product.isNew && (
-                          <span className="product-badge">NEW</span>
-                        )}
-                        <Link to={'/product/' + product.id} className="quick-view-btn">
-                          Quick View
-                        </Link>
+                        <div className="product-overlay">
+                          <span className="quick-view-btn">Quick View</span>
+                        </div>
                       </div>
-                      <div className="product-info">
-                        <span className="product-category">{product.category}</span>
-                        <h3 className="product-name">
-                          <Link to={'/product/' + product.id}>{product.name}</Link>
-                        </h3>
-                        <div className="product-price-row">
-                          <span className="product-price">
-                            ₹{product.price ? product.price.toLocaleString() : '0'}
-                          </span>
+                      
+                      {/* Product Details */}
+                      <div className="product-details">
+                        <span className="product-category">{product.category || 'LED Light'}</span>
+                        <h3 className="product-name">{product.name || 'LED Product'}</h3>
+                        <div className="product-footer">
+                          <div className="product-price">
+                            <span className="price-current">₹{product.price ? product.price.toLocaleString() : '0'}</span>
+                            {product.originalPrice && (
+                              <span className="price-original">₹{product.originalPrice.toLocaleString()}</span>
+                            )}
+                          </div>
                           <button 
                             className="add-to-cart-btn"
-                            onClick={function() { handleAddToCart(product); }}
+                            onClick={function(e) { handleAddToCart(e, product); }}
                             aria-label="Add to cart"
                           >
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M9 2L7 6H3L6 20H18L21 6H17L15 2H9Z" strokeLinecap="round" strokeLinejoin="round"/>
-                              <line x1="12" y1="10" x2="12" y2="16"/>
-                              <line x1="9" y1="13" x2="15" y2="13"/>
+                              <circle cx="9" cy="21" r="1"/>
+                              <circle cx="20" cy="21" r="1"/>
+                              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
                             </svg>
+                            <span>Add</span>
                           </button>
                         </div>
+                        {product.quantity !== undefined && product.quantity <= 5 && product.quantity > 0 && (
+                          <span className="stock-warning">Only {product.quantity} left!</span>
+                        )}
+                        {product.quantity === 0 && (
+                          <span className="out-of-stock">Out of Stock</span>
+                        )}
                       </div>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>
