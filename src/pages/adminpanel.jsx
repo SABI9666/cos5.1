@@ -39,7 +39,6 @@ function AdminPanel() {
   var ordersLoading = ordersLoadingState[0];
   var setOrdersLoading = ordersLoadingState[1];
 
-  // Category management states
   var categoriesState = useState([
     { id: 'wall-light', name: 'Wall Light', image: '' },
     { id: 'fan', name: 'Fan', image: '' },
@@ -121,33 +120,21 @@ function AdminPanel() {
         return updateCategory(categoryId, categoryToUpdate);
       }).then(function() {
         var newLoadingDone = {};
-        Object.keys(categoryLoading).forEach(function(key) {
-          newLoadingDone[key] = categoryLoading[key];
-        });
         newLoadingDone[categoryId] = false;
         setCategoryLoading(newLoadingDone);
         
         var newSaved = {};
-        Object.keys(categorySaved).forEach(function(key) {
-          newSaved[key] = categorySaved[key];
-        });
         newSaved[categoryId] = true;
         setCategorySaved(newSaved);
         
         setTimeout(function() {
           var resetSaved = {};
-          Object.keys(categorySaved).forEach(function(key) {
-            resetSaved[key] = categorySaved[key];
-          });
           resetSaved[categoryId] = false;
           setCategorySaved(resetSaved);
         }, 2000);
       }).catch(function(error) {
         console.error('Error uploading category image:', error);
         var newLoadingError = {};
-        Object.keys(categoryLoading).forEach(function(key) {
-          newLoadingError[key] = categoryLoading[key];
-        });
         newLoadingError[categoryId] = false;
         setCategoryLoading(newLoadingError);
         alert('Error uploading image. Please try again.');
@@ -167,9 +154,6 @@ function AdminPanel() {
 
   function saveCategoryUrl(categoryId) {
     var newLoading = {};
-    Object.keys(categoryLoading).forEach(function(key) {
-      newLoading[key] = categoryLoading[key];
-    });
     newLoading[categoryId] = true;
     setCategoryLoading(newLoading);
     
@@ -238,6 +222,36 @@ function AdminPanel() {
       }
     });
     return Object.values(customerMap);
+  }
+
+  function getPaidOrders() {
+    return orders.filter(function(order) {
+      return order.paymentStatus === 'paid';
+    });
+  }
+
+  function getPendingOrders() {
+    return orders.filter(function(order) {
+      return order.paymentStatus !== 'paid';
+    });
+  }
+
+  function getPaidTotal() {
+    return getPaidOrders().reduce(function(sum, order) {
+      return sum + (order.totalAmount || 0);
+    }, 0);
+  }
+
+  function getPendingTotal() {
+    return getPendingOrders().reduce(function(sum, order) {
+      return sum + (order.totalAmount || 0);
+    }, 0);
+  }
+
+  function getTotalAmount() {
+    return orders.reduce(function(sum, order) {
+      return sum + (order.totalAmount || 0);
+    }, 0);
   }
 
   function handleInputChange(e) {
@@ -325,6 +339,139 @@ function AdminPanel() {
 
   function openForm() { setIsFormOpen(true); }
 
+  function renderOrderCard(order, isPaid) {
+    return (
+      <div key={order.id} className={isPaid ? 'order-card paid-order' : 'order-card pending-order'}>
+        <div className="order-card-header">
+          <div className="order-id-section">
+            <span className="order-label">Order ID</span>
+            <span className="order-id-value">#{order.id.slice(-8).toUpperCase()}</span>
+          </div>
+          <div className="order-date-section">
+            <span className="order-label">Date</span>
+            <span className="order-date-value">{formatDate(order.createdAt)}</span>
+          </div>
+          <div className={isPaid ? 'payment-status-tag paid' : 'payment-status-tag pending'}>
+            {isPaid ? (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Paid
+              </>
+            ) : (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" strokeLinecap="round" strokeLinejoin="round"/>
+                  <polyline points="12 6 12 12 16 14" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Pending
+              </>
+            )}
+          </div>
+          <div className={'order-status-badge status-' + (order.status || 'pending')}>
+            {order.status || 'pending'}
+          </div>
+        </div>
+        
+        <div className="order-card-body">
+          <div className="order-section customer-section">
+            <h4>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="12" cy="7" r="4" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Customer Details
+            </h4>
+            <div className="info-rows">
+              <div className="info-row">
+                <span className="info-label">Name:</span>
+                <span className="info-value">{order.customerName || order.userName || 'N/A'}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">Email:</span>
+                <span className="info-value">{order.email || order.userEmail || 'N/A'}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">Phone:</span>
+                <span className="info-value">{order.phone || 'N/A'}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">Address:</span>
+                <span className="info-value address-value">{order.address || 'Not provided'}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="order-section payment-section">
+            <h4>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <line x1="1" y1="10" x2="23" y2="10" strokeLinecap="round"/>
+              </svg>
+              Payment Details
+            </h4>
+            <div className="info-rows">
+              <div className="info-row">
+                <span className="info-label">Status:</span>
+                <span className={isPaid ? 'payment-status-value paid' : 'payment-status-value pending'}>
+                  {isPaid ? '✓ Paid' : '○ Pending'}
+                </span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">Method:</span>
+                <span className="info-value">{order.paymentMethod || 'Razorpay'}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">Transaction ID:</span>
+                <span className="info-value transaction-id">{order.paymentId || order.transactionId || 'N/A'}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">Total Amount:</span>
+                <span className="info-value total-amount">₹{order.totalAmount ? order.totalAmount.toLocaleString() : '0'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="order-items-section">
+          <h4>Order Items ({order.items ? order.items.length : 0})</h4>
+          <div className="order-items-list">
+            {order.items && order.items.map(function(item, index) {
+              return (
+                <div key={index} className="order-item">
+                  <img src={item.imageUrl || 'https://via.placeholder.com/50'} alt={item.name} className="order-item-image" />
+                  <div className="order-item-details">
+                    <span className="order-item-name">{item.name}</span>
+                    <span className="order-item-qty">Qty: {item.quantity}</span>
+                  </div>
+                  <span className="order-item-price">₹{item.price ? (item.price * item.quantity).toLocaleString() : '0'}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        
+        <div className="order-card-footer">
+          <div className="status-update">
+            <span>Update Status:</span>
+            <select 
+              value={order.status || 'pending'} 
+              onChange={function(e) { handleOrderStatus(order.id, e.target.value); }}
+              className="status-select"
+            >
+              <option value="pending">Pending</option>
+              <option value="processing">Processing</option>
+              <option value="shipped">Shipped</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="admin-panel">
       <div className="admin-header">
@@ -335,59 +482,38 @@ function AdminPanel() {
       </div>
       
       <div className="admin-tabs">
-        <button 
-          className={activeTab === 'products' ? 'admin-tab active' : 'admin-tab'}
-          onClick={function() { setActiveTab('products'); }}
-        >
+        <button className={activeTab === 'products' ? 'admin-tab active' : 'admin-tab'} onClick={function() { setActiveTab('products'); }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           Products
         </button>
-        <button 
-          className={activeTab === 'categories' ? 'admin-tab active' : 'admin-tab'}
-          onClick={function() { setActiveTab('categories'); }}
-        >
+        <button className={activeTab === 'categories' ? 'admin-tab active' : 'admin-tab'} onClick={function() { setActiveTab('categories'); }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="3" width="7" height="7" rx="1"/>
-            <rect x="14" y="3" width="7" height="7" rx="1"/>
-            <rect x="3" y="14" width="7" height="7" rx="1"/>
-            <rect x="14" y="14" width="7" height="7" rx="1"/>
+            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
           </svg>
           Categories
         </button>
-        <button 
-          className={activeTab === 'orders' ? 'admin-tab active' : 'admin-tab'}
-          onClick={function() { setActiveTab('orders'); }}
-        >
+        <button className={activeTab === 'orders' ? 'admin-tab active' : 'admin-tab'} onClick={function() { setActiveTab('orders'); }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" strokeLinecap="round" strokeLinejoin="round"/>
             <rect x="9" y="3" width="6" height="4" rx="1" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M9 12h6M9 16h6" strokeLinecap="round"/>
           </svg>
           Orders
           {orders.length > 0 && <span className="tab-badge">{orders.length}</span>}
         </button>
-        <button 
-          className={activeTab === 'customers' ? 'admin-tab active' : 'admin-tab'}
-          onClick={function() { setActiveTab('customers'); }}
-        >
+        <button className={activeTab === 'customers' ? 'admin-tab active' : 'admin-tab'} onClick={function() { setActiveTab('customers'); }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" strokeLinecap="round" strokeLinejoin="round"/>
             <circle cx="9" cy="7" r="4" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           Customers
         </button>
-        <button 
-          className={activeTab === 'events' ? 'admin-tab active' : 'admin-tab'}
-          onClick={function() { setActiveTab('events'); }}
-        >
+        <button className={activeTab === 'events' ? 'admin-tab active' : 'admin-tab'} onClick={function() { setActiveTab('events'); }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-            <line x1="16" y1="2" x2="16" y2="6"/>
-            <line x1="8" y1="2" x2="8" y2="6"/>
-            <line x1="3" y1="10" x2="21" y2="10"/>
+            <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
           Events
         </button>
@@ -449,11 +575,7 @@ function AdminPanel() {
                   <div className="form-group">
                     <label>Product Image</label>
                     <div className="image-upload-section">
-                      {imagePreview && (
-                        <div className="image-preview">
-                          <img src={imagePreview} alt="Preview" />
-                        </div>
-                      )}
+                      {imagePreview && <div className="image-preview"><img src={imagePreview} alt="Preview" /></div>}
                       <div className="upload-options">
                         <input type="file" accept="image/*" onChange={handleImageChange} id="product-image" className="file-input" />
                         <label htmlFor="product-image" className="upload-btn">Choose Image</label>
@@ -464,9 +586,7 @@ function AdminPanel() {
                   </div>
                   <div className="form-actions">
                     <button type="button" onClick={resetForm} className="cancel-btn">Cancel</button>
-                    <button type="submit" className="submit-btn" disabled={loading}>
-                      {loading ? 'Saving...' : (editingProduct ? 'Update Product' : 'Add Product')}
-                    </button>
+                    <button type="submit" className="submit-btn" disabled={loading}>{loading ? 'Saving...' : (editingProduct ? 'Update Product' : 'Add Product')}</button>
                   </div>
                 </form>
               </div>
@@ -497,24 +617,11 @@ function AdminPanel() {
               {products.map(function(product) {
                 return (
                   <div key={product.id} className="table-row">
-                    <div className="table-cell" data-label="Image">
-                      <img src={product.imageUrl || 'https://via.placeholder.com/60'} alt={product.name} className="product-thumb" />
-                    </div>
-                    <div className="table-cell" data-label="Product">
-                      <div className="product-name-cell">
-                        <span className="product-name">{product.name}</span>
-                        {product.badge && <span className="product-badge">{product.badge}</span>}
-                      </div>
-                    </div>
-                    <div className="table-cell" data-label="Category">
-                      <span className="category-tag">{product.category}</span>
-                    </div>
+                    <div className="table-cell" data-label="Image"><img src={product.imageUrl || 'https://via.placeholder.com/60'} alt={product.name} className="product-thumb" /></div>
+                    <div className="table-cell" data-label="Product"><div className="product-name-cell"><span className="product-name">{product.name}</span>{product.badge && <span className="product-badge">{product.badge}</span>}</div></div>
+                    <div className="table-cell" data-label="Category"><span className="category-tag">{product.category}</span></div>
                     <div className="table-cell" data-label="Price">₹{product.price ? product.price.toLocaleString() : '0'}</div>
-                    <div className="table-cell" data-label="Stock">
-                      <span className={product.quantity > 10 ? 'stock-badge in-stock' : product.quantity > 0 ? 'stock-badge low-stock' : 'stock-badge out-of-stock'}>
-                        {product.quantity > 0 ? product.quantity + ' units' : 'Out of Stock'}
-                      </span>
-                    </div>
+                    <div className="table-cell" data-label="Stock"><span className={product.quantity > 10 ? 'stock-badge in-stock' : product.quantity > 0 ? 'stock-badge low-stock' : 'stock-badge out-of-stock'}>{product.quantity > 0 ? product.quantity + ' units' : 'Out of Stock'}</span></div>
                     <div className="table-cell actions" data-label="Actions">
                       <button className="edit-btn" onClick={function() { handleEdit(product); }}>Edit</button>
                       <button className="delete-btn" onClick={function() { handleDelete(product.id); }}>Delete</button>
@@ -533,7 +640,6 @@ function AdminPanel() {
             <h2>Category Images</h2>
             <p className="tab-subtitle">Manage images for "What are you looking for?" section on homepage</p>
           </div>
-          
           <div className="categories-management">
             {categories.map(function(category) {
               return (
@@ -544,9 +650,7 @@ function AdminPanel() {
                     ) : (
                       <div className="category-placeholder">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                          <circle cx="8.5" cy="8.5" r="1.5"/>
-                          <polyline points="21 15 16 10 5 21"/>
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
                         </svg>
                         <span>No Image</span>
                       </div>
@@ -556,54 +660,18 @@ function AdminPanel() {
                     <h3 className="category-edit-name">{category.name}</h3>
                     <div className="category-image-form">
                       <div className="url-input-group">
-                        <input 
-                          type="text" 
-                          value={category.image || ''} 
-                          onChange={function(e) { handleCategoryImageUrl(category.id, e.target.value); }}
-                          placeholder="Paste image URL here..."
-                          className="category-url-input"
-                        />
-                        <button 
-                          className="save-url-btn"
-                          onClick={function() { saveCategoryUrl(category.id); }}
-                          disabled={categoryLoading[category.id]}
-                        >
-                          {categoryLoading[category.id] ? 'Saving...' : 'Save'}
-                        </button>
+                        <input type="text" value={category.image || ''} onChange={function(e) { handleCategoryImageUrl(category.id, e.target.value); }} placeholder="Paste image URL here..." className="category-url-input" />
+                        <button className="save-url-btn" onClick={function() { saveCategoryUrl(category.id); }} disabled={categoryLoading[category.id]}>{categoryLoading[category.id] ? 'Saving...' : 'Save'}</button>
                       </div>
                       <div className="upload-divider"><span>OR</span></div>
                       <div className="category-file-upload">
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          onChange={function(e) { handleCategoryImageUpload(category.id, e); }}
-                          id={'cat-upload-' + category.id}
-                          className="file-input"
-                        />
+                        <input type="file" accept="image/*" onChange={function(e) { handleCategoryImageUpload(category.id, e); }} id={'cat-upload-' + category.id} className="file-input" />
                         <label htmlFor={'cat-upload-' + category.id} className="category-upload-btn">
-                          {categoryLoading[category.id] ? (
-                            <span>Uploading...</span>
-                          ) : (
-                            <>
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                <polyline points="17 8 12 3 7 8"/>
-                                <line x1="12" y1="3" x2="12" y2="15"/>
-                              </svg>
-                              Upload Image
-                            </>
-                          )}
+                          {categoryLoading[category.id] ? <span>Uploading...</span> : <><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload Image</>}
                         </label>
                       </div>
                     </div>
-                    {categorySaved[category.id] && (
-                      <div className="category-saved-msg">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                        Saved successfully!
-                      </div>
-                    )}
+                    {categorySaved[category.id] && <div className="category-saved-msg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>Saved successfully!</div>}
                   </div>
                 </div>
               );
@@ -616,12 +684,16 @@ function AdminPanel() {
         <>
           <div className="tab-header">
             <h2>Orders ({orders.length})</h2>
+            <button className="add-product-btn" onClick={loadOrders}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight: '8px'}}>
+                <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Refresh
+            </button>
           </div>
           
           {ordersLoading ? (
-            <div className="loading-container">
-              <div className="loading-spinner"></div>
-            </div>
+            <div className="loading-container"><div className="loading-spinner"></div></div>
           ) : orders.length === 0 ? (
             <div className="empty-state-container">
               <div className="empty-state">
@@ -634,121 +706,84 @@ function AdminPanel() {
               </div>
             </div>
           ) : (
-            <div className="orders-grid">
-              {orders.map(function(order) {
-                return (
-                  <div key={order.id} className="order-card">
-                    <div className="order-card-header">
-                      <div className="order-id-section">
-                        <span className="order-label">Order ID</span>
-                        <span className="order-id-value">#{order.id.slice(-8).toUpperCase()}</span>
-                      </div>
-                      <div className="order-date-section">
-                        <span className="order-label">Date</span>
-                        <span className="order-date-value">{formatDate(order.createdAt)}</span>
-                      </div>
-                      <div className={'order-status-badge status-' + (order.status || 'pending')}>
-                        {order.status || 'pending'}
-                      </div>
-                    </div>
-                    
-                    <div className="order-card-body">
-                      <div className="order-section customer-section">
-                        <h4>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <circle cx="12" cy="7" r="4" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                          Customer Details
-                        </h4>
-                        <div className="info-rows">
-                          <div className="info-row">
-                            <span className="info-label">Name:</span>
-                            <span className="info-value">{order.customerName || order.userName || 'N/A'}</span>
-                          </div>
-                          <div className="info-row">
-                            <span className="info-label">Email:</span>
-                            <span className="info-value">{order.email || order.userEmail || 'N/A'}</span>
-                          </div>
-                          <div className="info-row">
-                            <span className="info-label">Phone:</span>
-                            <span className="info-value">{order.phone || 'N/A'}</span>
-                          </div>
-                          <div className="info-row">
-                            <span className="info-label">Address:</span>
-                            <span className="info-value address-value">{order.address || 'Not provided'}</span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="order-section payment-section">
-                        <h4>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <line x1="1" y1="10" x2="23" y2="10" strokeLinecap="round"/>
-                          </svg>
-                          Payment Details
-                        </h4>
-                        <div className="info-rows">
-                          <div className="info-row">
-                            <span className="info-label">Status:</span>
-                            <span className={order.paymentStatus === 'paid' ? 'payment-status-value paid' : 'payment-status-value pending'}>
-                              {order.paymentStatus === 'paid' ? '✓ Paid' : '○ Pending'}
-                            </span>
-                          </div>
-                          <div className="info-row">
-                            <span className="info-label">Method:</span>
-                            <span className="info-value">{order.paymentMethod || 'Razorpay'}</span>
-                          </div>
-                          <div className="info-row">
-                            <span className="info-label">Transaction ID:</span>
-                            <span className="info-value transaction-id">{order.paymentId || order.transactionId || 'N/A'}</span>
-                          </div>
-                          <div className="info-row">
-                            <span className="info-label">Total Amount:</span>
-                            <span className="info-value total-amount">Rs.{order.totalAmount ? order.totalAmount.toLocaleString() : '0'}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="order-items-section">
-                      <h4>Order Items ({order.items ? order.items.length : 0})</h4>
-                      <div className="order-items-list">
-                        {order.items && order.items.map(function(item, index) {
-                          return (
-                            <div key={index} className="order-item">
-                              <img src={item.imageUrl || 'https://via.placeholder.com/50'} alt={item.name} className="order-item-image" />
-                              <div className="order-item-details">
-                                <span className="order-item-name">{item.name}</span>
-                                <span className="order-item-qty">Qty: {item.quantity}</span>
-                              </div>
-                              <span className="order-item-price">Rs.{item.price ? (item.price * item.quantity).toLocaleString() : '0'}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                    
-                    <div className="order-card-footer">
-                      <div className="status-update">
-                        <span>Update Status:</span>
-                        <select 
-                          value={order.status || 'pending'} 
-                          onChange={function(e) { handleOrderStatus(order.id, e.target.value); }}
-                          className="status-select"
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="processing">Processing</option>
-                          <option value="shipped">Shipped</option>
-                          <option value="completed">Completed</option>
-                          <option value="cancelled">Cancelled</option>
-                        </select>
-                      </div>
+            <div className="orders-sections">
+              <div className="payment-summary">
+                <div className="summary-card paid">
+                  <div className="summary-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" strokeLinecap="round" strokeLinejoin="round"/>
+                      <polyline points="22 4 12 14.01 9 11.01" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <div className="summary-info">
+                    <span className="summary-count">{getPaidOrders().length}</span>
+                    <span className="summary-label">Paid Orders</span>
+                  </div>
+                  <div className="summary-amount">₹{getPaidTotal().toLocaleString()}</div>
+                </div>
+                <div className="summary-card pending">
+                  <div className="summary-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" strokeLinecap="round" strokeLinejoin="round"/>
+                      <polyline points="12 6 12 12 16 14" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <div className="summary-info">
+                    <span className="summary-count">{getPendingOrders().length}</span>
+                    <span className="summary-label">Pending Orders</span>
+                  </div>
+                  <div className="summary-amount">₹{getPendingTotal().toLocaleString()}</div>
+                </div>
+                <div className="summary-card total">
+                  <div className="summary-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="1" y="4" width="22" height="16" rx="2" ry="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <line x1="1" y1="10" x2="23" y2="10" strokeLinecap="round"/>
+                    </svg>
+                  </div>
+                  <div className="summary-info">
+                    <span className="summary-count">{orders.length}</span>
+                    <span className="summary-label">Total Orders</span>
+                  </div>
+                  <div className="summary-amount">₹{getTotalAmount().toLocaleString()}</div>
+                </div>
+              </div>
+
+              {getPaidOrders().length > 0 && (
+                <div className="orders-group">
+                  <div className="orders-group-header paid">
+                    <div className="group-title">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" strokeLinecap="round" strokeLinejoin="round"/>
+                        <polyline points="22 4 12 14.01 9 11.01" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <h3>Paid Orders</h3>
+                      <span className="group-count">{getPaidOrders().length}</span>
                     </div>
                   </div>
-                );
-              })}
+                  <div className="orders-container">
+                    {getPaidOrders().map(function(order) { return renderOrderCard(order, true); })}
+                  </div>
+                </div>
+              )}
+
+              {getPendingOrders().length > 0 && (
+                <div className="orders-group">
+                  <div className="orders-group-header pending">
+                    <div className="group-title">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10" strokeLinecap="round" strokeLinejoin="round"/>
+                        <polyline points="12 6 12 12 16 14" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <h3>Pending Payment</h3>
+                      <span className="group-count">{getPendingOrders().length}</span>
+                    </div>
+                  </div>
+                  <div className="orders-container">
+                    {getPendingOrders().map(function(order) { return renderOrderCard(order, false); })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </>
@@ -756,10 +791,7 @@ function AdminPanel() {
 
       {activeTab === 'customers' && (
         <>
-          <div className="tab-header">
-            <h2>Customers ({getCustomersFromOrders().length})</h2>
-          </div>
-          
+          <div className="tab-header"><h2>Customers ({getCustomersFromOrders().length})</h2></div>
           {orders.length === 0 ? (
             <div className="empty-state-container">
               <div className="empty-state">
@@ -785,32 +817,12 @@ function AdminPanel() {
                 {getCustomersFromOrders().map(function(customer, index) {
                   return (
                     <div key={index} className="table-row">
-                      <div className="table-cell" data-label="Customer">
-                        <div className="customer-cell">
-                          <div className="customer-avatar">{customer.name.charAt(0).toUpperCase()}</div>
-                          <span className="customer-name">{customer.name}</span>
-                        </div>
-                      </div>
-                      <div className="table-cell" data-label="Contact">
-                        <div className="contact-info">
-                          <span className="contact-email">{customer.email}</span>
-                          <span className="contact-phone">{customer.phone}</span>
-                        </div>
-                      </div>
-                      <div className="table-cell" data-label="Address">
-                        <span className="address-text">{customer.address}</span>
-                      </div>
-                      <div className="table-cell" data-label="Orders">
-                        <span className="orders-count">{customer.orders}</span>
-                      </div>
-                      <div className="table-cell" data-label="Total Spent">
-                        <span className="total-spent">Rs.{customer.totalSpent.toLocaleString()}</span>
-                      </div>
-                      <div className="table-cell" data-label="Payment">
-                        <span className={customer.hasPaid ? 'payment-badge paid' : 'payment-badge pending'}>
-                          {customer.hasPaid ? 'Paid' : 'Pending'}
-                        </span>
-                      </div>
+                      <div className="table-cell" data-label="Customer"><div className="customer-cell"><div className="customer-avatar">{customer.name.charAt(0).toUpperCase()}</div><span className="customer-name">{customer.name}</span></div></div>
+                      <div className="table-cell" data-label="Contact"><div className="contact-info"><span className="contact-email">{customer.email}</span><span className="contact-phone">{customer.phone}</span></div></div>
+                      <div className="table-cell" data-label="Address"><span className="address-text">{customer.address}</span></div>
+                      <div className="table-cell" data-label="Orders"><span className="orders-count">{customer.orders}</span></div>
+                      <div className="table-cell" data-label="Total Spent"><span className="total-spent">₹{customer.totalSpent.toLocaleString()}</span></div>
+                      <div className="table-cell" data-label="Payment"><span className={customer.hasPaid ? 'payment-badge paid' : 'payment-badge pending'}>{customer.hasPaid ? 'Paid' : 'Pending'}</span></div>
                     </div>
                   );
                 })}
@@ -820,9 +832,7 @@ function AdminPanel() {
         </>
       )}
 
-      {activeTab === 'events' && (
-        <AdminEvents />
-      )}
+      {activeTab === 'events' && <AdminEvents />}
     </div>
   );
 }
