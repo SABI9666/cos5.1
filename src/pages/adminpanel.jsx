@@ -39,6 +39,11 @@ function AdminPanel() {
   var ordersLoading = ordersLoadingState[0];
   var setOrdersLoading = ordersLoadingState[1];
 
+  // Order filter state
+  var orderFilterState = useState('all');
+  var orderFilter = orderFilterState[0];
+  var setOrderFilter = orderFilterState[1];
+
   var categoriesState = useState([
     { id: 'wall-light', name: 'Wall Light', image: '' },
     { id: 'fan', name: 'Fan', image: '' },
@@ -101,9 +106,6 @@ function AdminPanel() {
     var file = e.target.files[0];
     if (file) {
       var newLoading = {};
-      Object.keys(categoryLoading).forEach(function(key) {
-        newLoading[key] = categoryLoading[key];
-      });
       newLoading[categoryId] = true;
       setCategoryLoading(newLoading);
       
@@ -224,32 +226,72 @@ function AdminPanel() {
     return Object.values(customerMap);
   }
 
-  function getPaidOrders() {
+  // Order filtering functions
+  function getPaymentCompletedOrders() {
     return orders.filter(function(order) {
       return order.paymentStatus === 'paid';
     });
   }
 
-  function getPendingOrders() {
+  function getPaymentPendingOrders() {
     return orders.filter(function(order) {
       return order.paymentStatus !== 'paid';
     });
   }
 
-  function getPaidTotal() {
-    return getPaidOrders().reduce(function(sum, order) {
-      return sum + (order.totalAmount || 0);
-    }, 0);
+  function getProcessingOrders() {
+    return orders.filter(function(order) {
+      return order.status === 'processing';
+    });
   }
 
-  function getPendingTotal() {
-    return getPendingOrders().reduce(function(sum, order) {
-      return sum + (order.totalAmount || 0);
-    }, 0);
+  function getShippedOrders() {
+    return orders.filter(function(order) {
+      return order.status === 'shipped';
+    });
   }
 
-  function getTotalAmount() {
-    return orders.reduce(function(sum, order) {
+  function getDeliveredOrders() {
+    return orders.filter(function(order) {
+      return order.status === 'completed' || order.status === 'delivered';
+    });
+  }
+
+  function getNewPendingOrders() {
+    return orders.filter(function(order) {
+      return order.status === 'pending' || !order.status;
+    });
+  }
+
+  function getCancelledOrders() {
+    return orders.filter(function(order) {
+      return order.status === 'cancelled';
+    });
+  }
+
+  function getFilteredOrders() {
+    switch(orderFilter) {
+      case 'payment-completed':
+        return getPaymentCompletedOrders();
+      case 'payment-pending':
+        return getPaymentPendingOrders();
+      case 'processing':
+        return getProcessingOrders();
+      case 'shipped':
+        return getShippedOrders();
+      case 'delivered':
+        return getDeliveredOrders();
+      case 'new-pending':
+        return getNewPendingOrders();
+      case 'cancelled':
+        return getCancelledOrders();
+      default:
+        return orders;
+    }
+  }
+
+  function getOrderTotal(orderList) {
+    return orderList.reduce(function(sum, order) {
       return sum + (order.totalAmount || 0);
     }, 0);
   }
@@ -339,9 +381,12 @@ function AdminPanel() {
 
   function openForm() { setIsFormOpen(true); }
 
-  function renderOrderCard(order, isPaid) {
+  function renderOrderCard(order) {
+    var isPaid = order.paymentStatus === 'paid';
+    var statusClass = order.status || 'pending';
+    
     return (
-      <div key={order.id} className={isPaid ? 'order-card paid-order' : 'order-card pending-order'}>
+      <div key={order.id} className={'order-card status-' + statusClass + (isPaid ? ' paid-order' : ' unpaid-order')}>
         <div className="order-card-header">
           <div className="order-id-section">
             <span className="order-label">Order ID</span>
@@ -357,7 +402,7 @@ function AdminPanel() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                Paid
+                Payment Done
               </>
             ) : (
               <>
@@ -365,12 +410,17 @@ function AdminPanel() {
                   <circle cx="12" cy="12" r="10" strokeLinecap="round" strokeLinejoin="round"/>
                   <polyline points="12 6 12 12 16 14" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                Pending
+                Payment Pending
               </>
             )}
           </div>
-          <div className={'order-status-badge status-' + (order.status || 'pending')}>
-            {order.status || 'pending'}
+          <div className={'order-status-badge status-' + statusClass}>
+            {statusClass === 'pending' && 'New Order'}
+            {statusClass === 'processing' && 'Processing'}
+            {statusClass === 'shipped' && 'Shipped'}
+            {statusClass === 'completed' && 'Delivered'}
+            {statusClass === 'delivered' && 'Delivered'}
+            {statusClass === 'cancelled' && 'Cancelled'}
           </div>
         </div>
         
@@ -413,19 +463,21 @@ function AdminPanel() {
             </h4>
             <div className="info-rows">
               <div className="info-row">
-                <span className="info-label">Status:</span>
+                <span className="info-label">Payment:</span>
                 <span className={isPaid ? 'payment-status-value paid' : 'payment-status-value pending'}>
-                  {isPaid ? '✓ Paid' : '○ Pending'}
+                  {isPaid ? '✓ Completed' : '○ Pending'}
                 </span>
               </div>
               <div className="info-row">
                 <span className="info-label">Method:</span>
                 <span className="info-value">{order.paymentMethod || 'Razorpay'}</span>
               </div>
-              <div className="info-row">
-                <span className="info-label">Transaction ID:</span>
-                <span className="info-value transaction-id">{order.paymentId || order.transactionId || 'N/A'}</span>
-              </div>
+              {isPaid && (
+                <div className="info-row">
+                  <span className="info-label">Transaction ID:</span>
+                  <span className="info-value transaction-id">{order.paymentId || order.transactionId || 'N/A'}</span>
+                </div>
+              )}
               <div className="info-row">
                 <span className="info-label">Total Amount:</span>
                 <span className="info-value total-amount">₹{order.totalAmount ? order.totalAmount.toLocaleString() : '0'}</span>
@@ -454,16 +506,16 @@ function AdminPanel() {
         
         <div className="order-card-footer">
           <div className="status-update">
-            <span>Update Status:</span>
+            <span>Update Order Status:</span>
             <select 
               value={order.status || 'pending'} 
               onChange={function(e) { handleOrderStatus(order.id, e.target.value); }}
               className="status-select"
             >
-              <option value="pending">Pending</option>
+              <option value="pending">New Order</option>
               <option value="processing">Processing</option>
               <option value="shipped">Shipped</option>
-              <option value="completed">Completed</option>
+              <option value="completed">Delivered</option>
               <option value="cancelled">Cancelled</option>
             </select>
           </div>
@@ -683,7 +735,7 @@ function AdminPanel() {
       {activeTab === 'orders' && (
         <>
           <div className="tab-header">
-            <h2>Orders ({orders.length})</h2>
+            <h2>Orders Management</h2>
             <button className="add-product-btn" onClick={loadOrders}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight: '8px'}}>
                 <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" strokeLinecap="round" strokeLinejoin="round"/>
@@ -706,84 +758,157 @@ function AdminPanel() {
               </div>
             </div>
           ) : (
-            <div className="orders-sections">
-              <div className="payment-summary">
-                <div className="summary-card paid">
-                  <div className="summary-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" strokeLinecap="round" strokeLinejoin="round"/>
-                      <polyline points="22 4 12 14.01 9 11.01" strokeLinecap="round" strokeLinejoin="round"/>
+            <div className="orders-management">
+              {/* Status Overview Cards */}
+              <div className="status-overview">
+                <div className="overview-section payment-overview">
+                  <h3 className="overview-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                      <line x1="1" y1="10" x2="23" y2="10"/>
                     </svg>
+                    Payment Status
+                  </h3>
+                  <div className="overview-cards">
+                    <div className={'overview-card payment-completed' + (orderFilter === 'payment-completed' ? ' active' : '')} onClick={function() { setOrderFilter(orderFilter === 'payment-completed' ? 'all' : 'payment-completed'); }}>
+                      <div className="card-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                          <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                      </div>
+                      <div className="card-content">
+                        <span className="card-count">{getPaymentCompletedOrders().length}</span>
+                        <span className="card-label">Payment Completed</span>
+                        <span className="card-amount">₹{getOrderTotal(getPaymentCompletedOrders()).toLocaleString()}</span>
+                      </div>
+                    </div>
+                    <div className={'overview-card payment-pending' + (orderFilter === 'payment-pending' ? ' active' : '')} onClick={function() { setOrderFilter(orderFilter === 'payment-pending' ? 'all' : 'payment-pending'); }}>
+                      <div className="card-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10"/>
+                          <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                      </div>
+                      <div className="card-content">
+                        <span className="card-count">{getPaymentPendingOrders().length}</span>
+                        <span className="card-label">Payment Pending</span>
+                        <span className="card-amount">₹{getOrderTotal(getPaymentPendingOrders()).toLocaleString()}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="summary-info">
-                    <span className="summary-count">{getPaidOrders().length}</span>
-                    <span className="summary-label">Paid Orders</span>
-                  </div>
-                  <div className="summary-amount">₹{getPaidTotal().toLocaleString()}</div>
                 </div>
-                <div className="summary-card pending">
-                  <div className="summary-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10" strokeLinecap="round" strokeLinejoin="round"/>
-                      <polyline points="12 6 12 12 16 14" strokeLinecap="round" strokeLinejoin="round"/>
+
+                <div className="overview-section order-overview">
+                  <h3 className="overview-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                      <rect x="9" y="3" width="6" height="4" rx="1"/>
                     </svg>
+                    Order Status
+                  </h3>
+                  <div className="overview-cards order-status-cards">
+                    <div className={'overview-card new-orders' + (orderFilter === 'new-pending' ? ' active' : '')} onClick={function() { setOrderFilter(orderFilter === 'new-pending' ? 'all' : 'new-pending'); }}>
+                      <div className="card-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10"/>
+                          <line x1="12" y1="8" x2="12" y2="16"/>
+                          <line x1="8" y1="12" x2="16" y2="12"/>
+                        </svg>
+                      </div>
+                      <div className="card-content">
+                        <span className="card-count">{getNewPendingOrders().length}</span>
+                        <span className="card-label">New Orders</span>
+                      </div>
+                    </div>
+                    <div className={'overview-card processing' + (orderFilter === 'processing' ? ' active' : '')} onClick={function() { setOrderFilter(orderFilter === 'processing' ? 'all' : 'processing'); }}>
+                      <div className="card-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                        </svg>
+                      </div>
+                      <div className="card-content">
+                        <span className="card-count">{getProcessingOrders().length}</span>
+                        <span className="card-label">Processing</span>
+                      </div>
+                    </div>
+                    <div className={'overview-card shipped' + (orderFilter === 'shipped' ? ' active' : '')} onClick={function() { setOrderFilter(orderFilter === 'shipped' ? 'all' : 'shipped'); }}>
+                      <div className="card-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="1" y="3" width="15" height="13"/>
+                          <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                          <circle cx="5.5" cy="18.5" r="2.5"/>
+                          <circle cx="18.5" cy="18.5" r="2.5"/>
+                        </svg>
+                      </div>
+                      <div className="card-content">
+                        <span className="card-count">{getShippedOrders().length}</span>
+                        <span className="card-label">Shipped</span>
+                      </div>
+                    </div>
+                    <div className={'overview-card delivered' + (orderFilter === 'delivered' ? ' active' : '')} onClick={function() { setOrderFilter(orderFilter === 'delivered' ? 'all' : 'delivered'); }}>
+                      <div className="card-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                      </div>
+                      <div className="card-content">
+                        <span className="card-count">{getDeliveredOrders().length}</span>
+                        <span className="card-label">Delivered</span>
+                      </div>
+                    </div>
+                    <div className={'overview-card cancelled' + (orderFilter === 'cancelled' ? ' active' : '')} onClick={function() { setOrderFilter(orderFilter === 'cancelled' ? 'all' : 'cancelled'); }}>
+                      <div className="card-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10"/>
+                          <line x1="15" y1="9" x2="9" y2="15"/>
+                          <line x1="9" y1="9" x2="15" y2="15"/>
+                        </svg>
+                      </div>
+                      <div className="card-content">
+                        <span className="card-count">{getCancelledOrders().length}</span>
+                        <span className="card-label">Cancelled</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="summary-info">
-                    <span className="summary-count">{getPendingOrders().length}</span>
-                    <span className="summary-label">Pending Orders</span>
-                  </div>
-                  <div className="summary-amount">₹{getPendingTotal().toLocaleString()}</div>
-                </div>
-                <div className="summary-card total">
-                  <div className="summary-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="1" y="4" width="22" height="16" rx="2" ry="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <line x1="1" y1="10" x2="23" y2="10" strokeLinecap="round"/>
-                    </svg>
-                  </div>
-                  <div className="summary-info">
-                    <span className="summary-count">{orders.length}</span>
-                    <span className="summary-label">Total Orders</span>
-                  </div>
-                  <div className="summary-amount">₹{getTotalAmount().toLocaleString()}</div>
                 </div>
               </div>
 
-              {getPaidOrders().length > 0 && (
-                <div className="orders-group">
-                  <div className="orders-group-header paid">
-                    <div className="group-title">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" strokeLinecap="round" strokeLinejoin="round"/>
-                        <polyline points="22 4 12 14.01 9 11.01" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      <h3>Paid Orders</h3>
-                      <span className="group-count">{getPaidOrders().length}</span>
-                    </div>
-                  </div>
-                  <div className="orders-container">
-                    {getPaidOrders().map(function(order) { return renderOrderCard(order, true); })}
-                  </div>
+              {/* Filter Info */}
+              <div className="filter-info">
+                <div className="filter-label">
+                  {orderFilter === 'all' && <span>Showing All Orders ({orders.length})</span>}
+                  {orderFilter === 'payment-completed' && <span className="filter-active payment-completed">Payment Completed ({getPaymentCompletedOrders().length})</span>}
+                  {orderFilter === 'payment-pending' && <span className="filter-active payment-pending">Payment Pending ({getPaymentPendingOrders().length})</span>}
+                  {orderFilter === 'new-pending' && <span className="filter-active new-orders">New Orders ({getNewPendingOrders().length})</span>}
+                  {orderFilter === 'processing' && <span className="filter-active processing">Processing ({getProcessingOrders().length})</span>}
+                  {orderFilter === 'shipped' && <span className="filter-active shipped">Shipped ({getShippedOrders().length})</span>}
+                  {orderFilter === 'delivered' && <span className="filter-active delivered">Delivered ({getDeliveredOrders().length})</span>}
+                  {orderFilter === 'cancelled' && <span className="filter-active cancelled">Cancelled ({getCancelledOrders().length})</span>}
                 </div>
-              )}
+                {orderFilter !== 'all' && (
+                  <button className="clear-filter-btn" onClick={function() { setOrderFilter('all'); }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18"/>
+                      <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                    Clear Filter
+                  </button>
+                )}
+              </div>
 
-              {getPendingOrders().length > 0 && (
-                <div className="orders-group">
-                  <div className="orders-group-header pending">
-                    <div className="group-title">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10" strokeLinecap="round" strokeLinejoin="round"/>
-                        <polyline points="12 6 12 12 16 14" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      <h3>Pending Payment</h3>
-                      <span className="group-count">{getPendingOrders().length}</span>
-                    </div>
+              {/* Orders List */}
+              <div className="orders-list">
+                {getFilteredOrders().length === 0 ? (
+                  <div className="no-orders-message">
+                    <p>No orders found for this filter</p>
                   </div>
-                  <div className="orders-container">
-                    {getPendingOrders().map(function(order) { return renderOrderCard(order, false); })}
-                  </div>
-                </div>
-              )}
+                ) : (
+                  getFilteredOrders().map(function(order) {
+                    return renderOrderCard(order);
+                  })
+                )}
+              </div>
             </div>
           )}
         </>
