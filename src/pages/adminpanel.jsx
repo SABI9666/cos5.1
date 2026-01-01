@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getProducts, addProduct, updateProduct, deleteProduct, getOrders, updateOrderStatusOnly, getCategories, updateCategory, uploadImage } from '../services/api';
+import { getProducts, addProduct, updateProduct, deleteProduct, getOrders, updateOrderStatusOnly, getCategories, updateCategory, uploadImage, uploadCategoryImage } from '../services/api';
 import './adminpanel.css';
 
 // SVG Icons
@@ -625,11 +625,63 @@ function AdminPanel() {
   };
 
   var handleCategoryImageSave = async function(categoryKey, imageUrl) {
+    if (!imageUrl || !imageUrl.trim()) {
+      alert('Please enter an image URL');
+      return;
+    }
     try {
+      await updateCategory(categoryKey, { name: categoryKey.split('-').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' '), image: imageUrl.trim() });
+      var updatedCategories = { ...categories, [categoryKey]: imageUrl.trim() };
+      setCategories(updatedCategories);
+      alert('Category image saved successfully!');
+    } catch (error) { 
+      console.error('Error saving category image:', error); 
+      alert('Failed to save category image');
+    }
+  };
+
+  var handleCategoryFileUpload = async function(categoryKey, e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size should be less than 5MB');
+      return;
+    }
+    
+    try {
+      var imageUrl = await uploadCategoryImage(file);
       await updateCategory(categoryKey, { name: categoryKey.split('-').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' '), image: imageUrl });
       var updatedCategories = { ...categories, [categoryKey]: imageUrl };
       setCategories(updatedCategories);
-    } catch (error) { console.error('Error saving category image:', error); }
+      alert('Category image uploaded successfully!');
+    } catch (error) {
+      console.error('Error uploading category image:', error);
+      alert('Failed to upload image. Please try again.');
+    }
+    
+    // Reset file input
+    e.target.value = '';
+  };
+
+  var handleCategoryImageDelete = async function(categoryKey) {
+    if (!window.confirm('Are you sure you want to remove this category image?')) {
+      return;
+    }
+    
+    try {
+      await updateCategory(categoryKey, { name: categoryKey.split('-').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' '), image: '' });
+      var updatedCategories = { ...categories, [categoryKey]: '' };
+      setCategories(updatedCategories);
+    } catch (error) { 
+      console.error('Error deleting category image:', error); 
+      alert('Failed to delete category image');
+    }
   };
 
   var handleUpdateOrderStatus = async function(orderId, newStatus) {
@@ -1053,23 +1105,72 @@ function AdminPanel() {
               <h2>Category Images</h2>
               <p className="tab-subtitle">Manage category banner images</p>
             </div>
+            <button className="refresh-btn" onClick={fetchAllData}><RefreshIcon /><span>Refresh</span></button>
           </div>
           <div className="categories-management">
-            {['wall-light', 'fan', 'hanging', 'gate-light', 'bldc-fan', 'wall-fan', 'wall-washer', 'bulb', 'surface-lights'].map(function(category) {
+            {['wall-light', 'fan', 'hanging', 'gate-light', 'bldc-fan', 'wall-fan', 'wall-washer', 'bulb', 'surface-lights'].map(function(categoryId) {
+              var categoryName = categoryId.split('-').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ');
+              var hasImage = categories[categoryId] && categories[categoryId].length > 0;
+              
               return (
-                <div key={category} className="category-card">
+                <div key={categoryId} className="category-card">
                   <div className="category-header">
-                    <h3>{category.split('-').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ')}</h3>
+                    <h3>{categoryName}</h3>
+                    {hasImage && (
+                      <button 
+                        type="button" 
+                        className="category-delete-btn" 
+                        onClick={function() { handleCategoryImageDelete(categoryId); }}
+                        title="Remove image"
+                      >
+                        <TrashIcon />
+                      </button>
+                    )}
                   </div>
                   <div className="category-preview">
-                    {categories[category] ? (
-                      <img src={categories[category]} alt={category} className="category-image" />
+                    {hasImage ? (
+                      <img src={categories[categoryId]} alt={categoryName} className="category-image" />
                     ) : (
-                      <div className="category-placeholder"><ImageIcon /><span>No image set</span></div>
+                      <div className="category-placeholder">
+                        <ImageIcon />
+                        <span>No image set</span>
+                      </div>
                     )}
                   </div>
                   <div className="category-actions">
-                    <input type="text" placeholder="Paste image URL..." className="category-url-input" onKeyPress={function(e) { if (e.key === 'Enter') { handleCategoryImageSave(category, e.target.value); e.target.value = ''; } }} />
+                    <div className="category-upload-row">
+                      <input 
+                        type="file" 
+                        id={'category-upload-' + categoryId}
+                        accept="image/*" 
+                        style={{ display: 'none' }}
+                        onChange={function(e) { handleCategoryFileUpload(categoryId, e); }}
+                      />
+                      <label htmlFor={'category-upload-' + categoryId} className="category-upload-btn">
+                        <UploadIcon />
+                        <span>Upload</span>
+                      </label>
+                      <span className="category-or">or</span>
+                      <input 
+                        type="text" 
+                        id={'category-url-' + categoryId}
+                        placeholder="Paste URL" 
+                        className="category-url-input"
+                      />
+                      <button 
+                        type="button" 
+                        className="category-save-btn"
+                        onClick={function() { 
+                          var urlInput = document.getElementById('category-url-' + categoryId);
+                          if (urlInput && urlInput.value.trim()) {
+                            handleCategoryImageSave(categoryId, urlInput.value.trim()); 
+                            urlInput.value = ''; 
+                          }
+                        }}
+                      >
+                        Save
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
