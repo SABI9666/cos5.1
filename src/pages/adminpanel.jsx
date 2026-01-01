@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { db, storage } from '../firebase';
+import { db, storage } from '../firebase/config';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, setDoc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Link } from 'react-router-dom';
@@ -8,7 +8,7 @@ import './adminpanel.css';
 // SVG Icons
 var ShieldIcon = function() {
   return (
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
       <path d="M9 12l2 2 4-4"/>
     </svg>
@@ -234,7 +234,7 @@ var FilterIcon = function() {
 
 var CreditCardIcon = function() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
       <line x1="1" y1="10" x2="23" y2="10"/>
     </svg>
@@ -243,10 +243,31 @@ var CreditCardIcon = function() {
 
 var WalletIcon = function() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
       <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
       <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z"/>
+    </svg>
+  );
+};
+
+var BoxIcon = function() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+      <path d="m3.3 7 8.7 5 8.7-5"/>
+      <path d="M12 22V12"/>
+    </svg>
+  );
+};
+
+var ReceiptIcon = function() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z"/>
+      <path d="M14 8H8"/>
+      <path d="M16 12H8"/>
+      <path d="M13 16H8"/>
     </svg>
   );
 };
@@ -312,6 +333,7 @@ function AdminPanel() {
   var formData = formDataState[0];
   var setFormData = formDataState[1];
 
+  // Login Credentials
   var ADMIN_USERNAME = 'Laxora';
   var ADMIN_PASSWORD = 'Laxora@9666';
 
@@ -366,6 +388,7 @@ function AdminPanel() {
     setLoading(false);
   };
 
+  // Payment Status Filters
   var getPaymentCompletedOrders = function() {
     return orders.filter(function(order) { return order.paymentStatus === 'paid' || order.paymentStatus === 'completed'; });
   };
@@ -374,6 +397,7 @@ function AdminPanel() {
     return orders.filter(function(order) { return order.paymentStatus !== 'paid' && order.paymentStatus !== 'completed'; });
   };
 
+  // Order Lifecycle Filters
   var getNewPendingOrders = function() {
     return orders.filter(function(order) { return !order.status || order.status === 'pending' || order.status === 'new'; });
   };
@@ -477,33 +501,39 @@ function AdminPanel() {
     } catch (error) { console.error('Error updating order status:', error); }
   };
 
+  // Login Page
   if (!isLoggedIn) {
     return (
       <div className="login-container">
         <div className="login-background">
           <div className="login-gradient"></div>
           <div className="login-grid"></div>
-          <div className="login-glow glow-1"></div>
-          <div className="login-glow glow-2"></div>
+          <div className="login-orb orb-1"></div>
+          <div className="login-orb orb-2"></div>
+          <div className="login-orb orb-3"></div>
         </div>
         <div className="login-card">
+          <div className="login-card-glow"></div>
           <div className="login-header">
-            <div className="login-logo"><ShieldIcon /></div>
-            <h1>Laxora Admin</h1>
-            <p>Secure Dashboard Access</p>
+            <div className="login-logo">
+              <div className="logo-ring"></div>
+              <ShieldIcon />
+            </div>
+            <h1>Laxora</h1>
+            <p className="login-tagline">Admin Control Center</p>
           </div>
           <form className="login-form" onSubmit={handleLogin}>
             <div className="login-field">
               <label>Username</label>
               <div className="input-wrapper">
-                <UserIcon />
+                <div className="input-icon"><UserIcon /></div>
                 <input type="text" placeholder="Enter username" value={username} onChange={function(e) { setUsername(e.target.value); }} autoComplete="username" />
               </div>
             </div>
             <div className="login-field">
               <label>Password</label>
               <div className="input-wrapper">
-                <LockIcon />
+                <div className="input-icon"><LockIcon /></div>
                 <input type={showPassword ? 'text' : 'password'} placeholder="Enter password" value={password} onChange={function(e) { setPassword(e.target.value); }} autoComplete="current-password" />
                 <button type="button" className="toggle-password" onClick={function() { setShowPassword(!showPassword); }}>
                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}
@@ -511,20 +541,30 @@ function AdminPanel() {
               </div>
             </div>
             {loginError && (<div className="login-error"><AlertIcon /><span>{loginError}</span></div>)}
-            <button type="submit" className="login-btn"><span>Sign In</span><ArrowRightIcon /></button>
+            <button type="submit" className="login-btn">
+              <span>Access Dashboard</span>
+              <ArrowRightIcon />
+            </button>
           </form>
-          <div className="login-footer"><p>Protected by Laxora Security</p></div>
+          <div className="login-footer">
+            <div className="footer-divider"><span>Secure Access</span></div>
+            <p>Protected by enterprise-grade security</p>
+          </div>
         </div>
       </div>
     );
   }
 
+  // Main Dashboard
   return (
     <div className="admin-panel">
       <header className="admin-header">
         <div className="admin-brand">
           <div className="brand-icon"><WalletIcon /></div>
-          <div className="brand-text"><h1>Laxora</h1><span>Admin Dashboard</span></div>
+          <div className="brand-text">
+            <h1>Laxora</h1>
+            <span>Admin Dashboard</span>
+          </div>
         </div>
         <div className="admin-header-actions">
           <Link to="/" className="header-btn store-btn"><ExternalLinkIcon /><span>View Store</span></Link>
@@ -549,64 +589,165 @@ function AdminPanel() {
 
       {loading && (<div className="loading-container"><div className="loading-spinner"></div></div>)}
 
+      {/* ORDERS TAB - Professional Order Status Separation */}
       {!loading && activeTab === 'orders' && (
         <>
           <div className="tab-header">
-            <div className="tab-title-section"><h2>Order Management</h2><p className="tab-subtitle">Track payments and order fulfillment</p></div>
+            <div className="tab-title-section">
+              <h2>Order Management</h2>
+              <p className="tab-subtitle">Track payments and order fulfillment</p>
+            </div>
             <button className="refresh-btn" onClick={fetchAllData}><RefreshIcon /><span>Refresh</span></button>
           </div>
+
+          {/* Payment & Order Status Dashboard */}
           <div className="orders-dashboard">
-            <div className="dashboard-section">
-              <div className="section-header"><div className="section-icon payment"><CreditCardIcon /></div><h3>Payment Status</h3></div>
-              <div className="payment-cards">
-                <div className={'payment-stat-card completed' + (orderFilter === 'payment-completed' ? ' active' : '')} onClick={function() { handleFilterClick('payment-completed'); }}>
-                  <div className="psc-header"><div className="psc-icon completed"><CheckIcon /></div><div className="psc-badge">Received</div></div>
-                  <div className="psc-content"><div className="psc-count">{getPaymentCompletedOrders().length}</div><div className="psc-label">Payment Completed</div><div className="psc-amount">{formatCurrency(getOrderTotal(getPaymentCompletedOrders()))}</div></div>
-                  <div className="psc-bar completed"></div>
+            {/* Payment Status Section */}
+            <div className="dashboard-panel payment-panel">
+              <div className="panel-header">
+                <div className="panel-icon-wrapper payment">
+                  <CreditCardIcon />
                 </div>
-                <div className={'payment-stat-card pending' + (orderFilter === 'payment-pending' ? ' active' : '')} onClick={function() { handleFilterClick('payment-pending'); }}>
-                  <div className="psc-header"><div className="psc-icon pending"><ClockIcon /></div><div className="psc-badge warning">Awaiting</div></div>
-                  <div className="psc-content"><div className="psc-count">{getPaymentPendingOrders().length}</div><div className="psc-label">Payment Pending</div><div className="psc-amount">{formatCurrency(getOrderTotal(getPaymentPendingOrders()))}</div></div>
-                  <div className="psc-bar pending"></div>
+                <div className="panel-title-group">
+                  <h3>Payment Status</h3>
+                  <p>Real-time payment tracking</p>
+                </div>
+              </div>
+              <div className="payment-metrics">
+                <div className={'metric-card completed' + (orderFilter === 'payment-completed' ? ' active' : '')} onClick={function() { handleFilterClick('payment-completed'); }}>
+                  <div className="metric-visual">
+                    <div className="metric-ring">
+                      <svg viewBox="0 0 36 36" className="circular-chart">
+                        <path className="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                        <path className="circle" strokeDasharray={(orders.length > 0 ? (getPaymentCompletedOrders().length / orders.length) * 100 : 0) + ', 100'} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                      </svg>
+                      <div className="metric-icon"><CheckIcon /></div>
+                    </div>
+                  </div>
+                  <div className="metric-data">
+                    <div className="metric-count">{getPaymentCompletedOrders().length}</div>
+                    <div className="metric-label">Payment Received</div>
+                    <div className="metric-amount">{formatCurrency(getOrderTotal(getPaymentCompletedOrders()))}</div>
+                  </div>
+                  <div className="metric-badge success">Completed</div>
+                </div>
+
+                <div className={'metric-card pending' + (orderFilter === 'payment-pending' ? ' active' : '')} onClick={function() { handleFilterClick('payment-pending'); }}>
+                  <div className="metric-visual">
+                    <div className="metric-ring pending">
+                      <svg viewBox="0 0 36 36" className="circular-chart">
+                        <path className="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                        <path className="circle" strokeDasharray={(orders.length > 0 ? (getPaymentPendingOrders().length / orders.length) * 100 : 0) + ', 100'} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                      </svg>
+                      <div className="metric-icon"><ClockIcon /></div>
+                    </div>
+                  </div>
+                  <div className="metric-data">
+                    <div className="metric-count">{getPaymentPendingOrders().length}</div>
+                    <div className="metric-label">Awaiting Payment</div>
+                    <div className="metric-amount">{formatCurrency(getOrderTotal(getPaymentPendingOrders()))}</div>
+                  </div>
+                  <div className="metric-badge warning">Pending</div>
                 </div>
               </div>
             </div>
 
-            <div className="dashboard-section">
-              <div className="section-header"><div className="section-icon order"><PackageIcon /></div><h3>Order Lifecycle</h3></div>
-              <div className="order-status-cards">
-                <div className={'osc-card new' + (orderFilter === 'new-pending' ? ' active' : '')} onClick={function() { handleFilterClick('new-pending'); }}>
-                  <div className="osc-icon"><PlusIcon /></div><div className="osc-count">{getNewPendingOrders().length}</div><div className="osc-label">New Orders</div>
+            {/* Order Lifecycle Section */}
+            <div className="dashboard-panel lifecycle-panel">
+              <div className="panel-header">
+                <div className="panel-icon-wrapper lifecycle">
+                  <BoxIcon />
                 </div>
-                <div className="osc-arrow">→</div>
-                <div className={'osc-card processing' + (orderFilter === 'processing' ? ' active' : '')} onClick={function() { handleFilterClick('processing'); }}>
-                  <div className="osc-icon"><SpinnerIcon /></div><div className="osc-count">{getProcessingOrders().length}</div><div className="osc-label">Processing</div>
+                <div className="panel-title-group">
+                  <h3>Order Lifecycle</h3>
+                  <p>Track order progress through stages</p>
                 </div>
-                <div className="osc-arrow">→</div>
-                <div className={'osc-card shipped' + (orderFilter === 'shipped' ? ' active' : '')} onClick={function() { handleFilterClick('shipped'); }}>
-                  <div className="osc-icon"><TruckIcon /></div><div className="osc-count">{getShippedOrders().length}</div><div className="osc-label">Shipped</div>
+              </div>
+              <div className="lifecycle-pipeline">
+                <div className="pipeline-track">
+                  <div className={'pipeline-stage new' + (orderFilter === 'new-pending' ? ' active' : '')} onClick={function() { handleFilterClick('new-pending'); }}>
+                    <div className="stage-node">
+                      <div className="node-icon"><PlusIcon /></div>
+                      <div className="node-count">{getNewPendingOrders().length}</div>
+                    </div>
+                    <div className="stage-label">New Orders</div>
+                  </div>
+                  <div className="pipeline-connector"></div>
+                  <div className={'pipeline-stage processing' + (orderFilter === 'processing' ? ' active' : '')} onClick={function() { handleFilterClick('processing'); }}>
+                    <div className="stage-node">
+                      <div className="node-icon"><SpinnerIcon /></div>
+                      <div className="node-count">{getProcessingOrders().length}</div>
+                    </div>
+                    <div className="stage-label">Processing</div>
+                  </div>
+                  <div className="pipeline-connector"></div>
+                  <div className={'pipeline-stage shipped' + (orderFilter === 'shipped' ? ' active' : '')} onClick={function() { handleFilterClick('shipped'); }}>
+                    <div className="stage-node">
+                      <div className="node-icon"><TruckIcon /></div>
+                      <div className="node-count">{getShippedOrders().length}</div>
+                    </div>
+                    <div className="stage-label">Shipped</div>
+                  </div>
+                  <div className="pipeline-connector"></div>
+                  <div className={'pipeline-stage delivered' + (orderFilter === 'delivered' ? ' active' : '')} onClick={function() { handleFilterClick('delivered'); }}>
+                    <div className="stage-node">
+                      <div className="node-icon"><CheckIcon /></div>
+                      <div className="node-count">{getDeliveredOrders().length}</div>
+                    </div>
+                    <div className="stage-label">Delivered</div>
+                  </div>
                 </div>
-                <div className="osc-arrow">→</div>
-                <div className={'osc-card delivered' + (orderFilter === 'delivered' ? ' active' : '')} onClick={function() { handleFilterClick('delivered'); }}>
-                  <div className="osc-icon"><CheckIcon /></div><div className="osc-count">{getDeliveredOrders().length}</div><div className="osc-label">Delivered</div>
-                </div>
-                <div className="osc-divider"></div>
-                <div className={'osc-card cancelled' + (orderFilter === 'cancelled' ? ' active' : '')} onClick={function() { handleFilterClick('cancelled'); }}>
-                  <div className="osc-icon"><XIcon /></div><div className="osc-count">{getCancelledOrders().length}</div><div className="osc-label">Cancelled</div>
+                <div className="pipeline-cancelled">
+                  <div className={'pipeline-stage cancelled' + (orderFilter === 'cancelled' ? ' active' : '')} onClick={function() { handleFilterClick('cancelled'); }}>
+                    <div className="stage-node">
+                      <div className="node-icon"><XIcon /></div>
+                      <div className="node-count">{getCancelledOrders().length}</div>
+                    </div>
+                    <div className="stage-label">Cancelled</div>
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            {orderFilter !== 'all' && (
-              <div className="filter-indicator">
-                <div className="filter-info"><FilterIcon /><span>Showing: <strong>{orderFilter.replace('-', ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); })}</strong><span className="filter-count">({getFilteredOrders().length} orders)</span></span></div>
-                <button className="clear-filter-btn" onClick={function() { setOrderFilter('all'); }}><XIcon />Clear Filter</button>
+          {/* Active Filter Indicator */}
+          {orderFilter !== 'all' && (
+            <div className="active-filter-bar">
+              <div className="filter-info">
+                <FilterIcon />
+                <span className="filter-text">
+                  Showing <strong>{orderFilter.replace('-', ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); })}</strong>
+                </span>
+                <span className="filter-count">{getFilteredOrders().length} orders</span>
               </div>
-            )}
+              <button className="clear-filter-btn" onClick={function() { setOrderFilter('all'); }}>
+                <XIcon />
+                <span>Clear Filter</span>
+              </button>
+            </div>
+          )}
 
-            <div className="orders-list">
+          {/* Orders List */}
+          <div className="orders-section">
+            <div className="section-header-bar">
+              <div className="section-title">
+                <ReceiptIcon />
+                <h3>Order Details</h3>
+              </div>
+              <div className="section-stats">
+                <span className="stat-item">{getFilteredOrders().length} orders</span>
+                <span className="stat-divider">•</span>
+                <span className="stat-item">{formatCurrency(getOrderTotal(getFilteredOrders()))}</span>
+              </div>
+            </div>
+
+            <div className="orders-grid">
               {getFilteredOrders().length === 0 ? (
-                <div className="empty-state"><ShoppingBagIcon /><h3>No Orders Found</h3><p>No orders match the current filter.</p></div>
+                <div className="empty-state">
+                  <div className="empty-icon"><ShoppingBagIcon /></div>
+                  <h3>No Orders Found</h3>
+                  <p>No orders match the current filter criteria.</p>
+                </div>
               ) : (
                 getFilteredOrders().map(function(order) {
                   var isPaid = order.paymentStatus === 'paid' || order.paymentStatus === 'completed';
@@ -614,26 +755,61 @@ function AdminPanel() {
                   return (
                     <div key={order.id} className={'order-card ' + orderStatus + (isPaid ? ' paid' : ' unpaid')}>
                       <div className="order-card-header">
-                        <div className="order-header-left"><div className="order-id">#{order.orderId || order.id.slice(-8).toUpperCase()}</div><div className="order-date">{formatDate(order.createdAt)}</div></div>
+                        <div className="order-header-left">
+                          <div className="order-id">#{order.orderId || order.id.slice(-8).toUpperCase()}</div>
+                          <div className="order-date">{formatDate(order.createdAt)}</div>
+                        </div>
                         <div className="order-header-right">
-                          <div className={'payment-tag' + (isPaid ? ' paid' : ' pending')}>{isPaid ? <CheckIcon /> : <ClockIcon />}<span>{isPaid ? 'Payment Done' : 'Payment Pending'}</span></div>
-                          <div className={'order-status-badge ' + orderStatus}>{orderStatus.charAt(0).toUpperCase() + orderStatus.slice(1)}</div>
+                          <div className={'payment-tag' + (isPaid ? ' paid' : ' pending')}>
+                            {isPaid ? <CheckIcon /> : <ClockIcon />}
+                            <span>{isPaid ? 'Paid' : 'Pending'}</span>
+                          </div>
+                          <div className={'order-status-badge ' + orderStatus}>
+                            {orderStatus === 'pending' || orderStatus === 'new' ? 'New' : orderStatus.charAt(0).toUpperCase() + orderStatus.slice(1)}
+                          </div>
                         </div>
                       </div>
                       <div className="order-card-body">
                         <div className="order-info-grid">
-                          <div className="order-info-item"><span className="info-label">Customer</span><span className="info-value">{order.customerName || order.shippingDetails?.name || 'N/A'}</span></div>
-                          <div className="order-info-item"><span className="info-label">Phone</span><span className="info-value">{order.phone || order.shippingDetails?.phone || 'N/A'}</span></div>
-                          <div className="order-info-item"><span className="info-label">Amount</span><span className="info-value amount">{formatCurrency(order.total || order.amount)}</span></div>
-                          <div className="order-info-item"><span className="info-label">Items</span><span className="info-value">{order.items?.length || 0} items</span></div>
+                          <div className="order-info-item">
+                            <span className="info-label">Customer</span>
+                            <span className="info-value">{order.customerName || order.shippingDetails?.name || 'N/A'}</span>
+                          </div>
+                          <div className="order-info-item">
+                            <span className="info-label">Phone</span>
+                            <span className="info-value">{order.phone || order.shippingDetails?.phone || 'N/A'}</span>
+                          </div>
+                          <div className="order-info-item">
+                            <span className="info-label">Amount</span>
+                            <span className="info-value amount">{formatCurrency(order.total || order.amount)}</span>
+                          </div>
+                          <div className="order-info-item">
+                            <span className="info-label">Items</span>
+                            <span className="info-value">{order.items?.length || 0} items</span>
+                          </div>
                         </div>
-                        {isPaid && order.transactionId && (<div className="transaction-info"><span className="txn-label">Transaction ID:</span><span className="txn-value">{order.transactionId}</span></div>)}
-                        <div className="order-address"><span className="address-label">Shipping Address:</span><span className="address-value">{order.shippingDetails?.address || order.address || 'N/A'}, {order.shippingDetails?.city || ''} {order.shippingDetails?.state || ''} - {order.shippingDetails?.pincode || ''}</span></div>
+                        {isPaid && order.transactionId && (
+                          <div className="transaction-info">
+                            <span className="txn-label">Transaction ID:</span>
+                            <span className="txn-value">{order.transactionId}</span>
+                          </div>
+                        )}
+                        <div className="order-address">
+                          <span className="address-label">Shipping:</span>
+                          <span className="address-value">
+                            {order.shippingDetails?.address || order.address || 'N/A'}, {order.shippingDetails?.city || ''} {order.shippingDetails?.state || ''} - {order.shippingDetails?.pincode || ''}
+                          </span>
+                        </div>
                       </div>
                       <div className="order-card-footer">
-                        <div className="status-update"><span className="update-label">Update Status:</span>
+                        <div className="status-update">
+                          <span className="update-label">Update Status:</span>
                           <select className="status-select" value={orderStatus} onChange={function(e) { updateOrderStatus(order.id, e.target.value); }}>
-                            <option value="pending">New Order</option><option value="processing">Processing</option><option value="shipped">Shipped</option><option value="delivered">Delivered</option><option value="cancelled">Cancelled</option>
+                            <option value="pending">New Order</option>
+                            <option value="processing">Processing</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
                           </select>
                         </div>
                       </div>
@@ -646,20 +822,31 @@ function AdminPanel() {
         </>
       )}
 
+      {/* PRODUCTS TAB */}
       {!loading && activeTab === 'products' && (
         <>
           <div className="tab-header">
-            <div className="tab-title-section"><h2>Products</h2><p className="tab-subtitle">Manage your product catalog</p></div>
+            <div className="tab-title-section">
+              <h2>Products</h2>
+              <p className="tab-subtitle">Manage your product catalog</p>
+            </div>
             <button className="add-btn" onClick={handleAddProduct}><PlusIcon /><span>Add Product</span></button>
           </div>
           <div className="products-table">
             <div className="table-header">
-              <div className="table-cell">Image</div><div className="table-cell">Product Name</div><div className="table-cell">Category</div><div className="table-cell">Price</div><div className="table-cell">Stock</div><div className="table-cell">Actions</div>
+              <div className="table-cell">Image</div>
+              <div className="table-cell">Product Name</div>
+              <div className="table-cell">Category</div>
+              <div className="table-cell">Price</div>
+              <div className="table-cell">Stock</div>
+              <div className="table-cell">Actions</div>
             </div>
             {products.map(function(product) {
               return (
                 <div key={product.id} className="table-row">
-                  <div className="table-cell" data-label="Image"><div className="product-thumb">{product.image ? (<img src={product.image} alt={product.name} />) : (<ImageIcon />)}</div></div>
+                  <div className="table-cell" data-label="Image">
+                    <div className="product-thumb">{product.image ? (<img src={product.image} alt={product.name} />) : (<ImageIcon />)}</div>
+                  </div>
                   <div className="table-cell" data-label="Name"><span className="product-name">{product.name}</span></div>
                   <div className="table-cell" data-label="Category"><span className="category-badge">{product.category || 'Uncategorized'}</span></div>
                   <div className="table-cell" data-label="Price"><span className="price">{formatCurrency(product.price)}</span></div>
@@ -675,22 +862,39 @@ function AdminPanel() {
         </>
       )}
 
+      {/* CUSTOMERS TAB */}
       {!loading && activeTab === 'customers' && (
         <>
           <div className="tab-header">
-            <div className="tab-title-section"><h2>Customers</h2><p className="tab-subtitle">View customer information</p></div>
+            <div className="tab-title-section">
+              <h2>Customers</h2>
+              <p className="tab-subtitle">View customer information</p>
+            </div>
             <button className="refresh-btn" onClick={fetchAllData}><RefreshIcon /><span>Refresh</span></button>
           </div>
           <div className="customers-table-container">
             <div className="customers-table">
               <div className="table-header">
-                <div className="table-cell">Customer</div><div className="table-cell">Contact</div><div className="table-cell">Location</div><div className="table-cell">Orders</div><div className="table-cell">Total Spent</div><div className="table-cell">Status</div>
+                <div className="table-cell">Customer</div>
+                <div className="table-cell">Contact</div>
+                <div className="table-cell">Location</div>
+                <div className="table-cell">Orders</div>
+                <div className="table-cell">Total Spent</div>
+                <div className="table-cell">Status</div>
               </div>
               {customers.map(function(customer) {
                 return (
                   <div key={customer.id} className="table-row">
-                    <div className="table-cell customer-cell" data-label="Customer"><div className="customer-avatar">{(customer.name || 'U').charAt(0).toUpperCase()}</div><span>{customer.name || 'Unknown'}</span></div>
-                    <div className="table-cell" data-label="Contact"><div className="contact-info"><span className="contact-email">{customer.email || 'N/A'}</span><span className="contact-phone">{customer.phone || 'N/A'}</span></div></div>
+                    <div className="table-cell customer-cell" data-label="Customer">
+                      <div className="customer-avatar">{(customer.name || 'U').charAt(0).toUpperCase()}</div>
+                      <span>{customer.name || 'Unknown'}</span>
+                    </div>
+                    <div className="table-cell" data-label="Contact">
+                      <div className="contact-info">
+                        <span className="contact-email">{customer.email || 'N/A'}</span>
+                        <span className="contact-phone">{customer.phone || 'N/A'}</span>
+                      </div>
+                    </div>
                     <div className="table-cell" data-label="Location">{customer.city || customer.state || 'N/A'}</div>
                     <div className="table-cell" data-label="Orders"><span className="orders-count">{customer.orderCount || 0}</span></div>
                     <div className="table-cell" data-label="Total Spent"><span className="total-spent">{formatCurrency(customer.totalSpent || 0)}</span></div>
@@ -703,17 +907,29 @@ function AdminPanel() {
         </>
       )}
 
+      {/* CATEGORIES TAB */}
       {!loading && activeTab === 'events' && (
         <>
           <div className="tab-header">
-            <div className="tab-title-section"><h2>Category Images</h2><p className="tab-subtitle">Manage category banner images</p></div>
+            <div className="tab-title-section">
+              <h2>Category Images</h2>
+              <p className="tab-subtitle">Manage category banner images</p>
+            </div>
           </div>
           <div className="categories-management">
             {['strip-lights', 'panel-lights', 'decorative', 'outdoor', 'smart-lights', 'accessories'].map(function(category) {
               return (
                 <div key={category} className="category-card">
-                  <div className="category-header"><h3>{category.split('-').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ')}</h3></div>
-                  <div className="category-preview">{categories[category] ? (<img src={categories[category]} alt={category} className="category-image" />) : (<div className="category-placeholder"><ImageIcon /><span>No image set</span></div>)}</div>
+                  <div className="category-header">
+                    <h3>{category.split('-').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ')}</h3>
+                  </div>
+                  <div className="category-preview">
+                    {categories[category] ? (
+                      <img src={categories[category]} alt={category} className="category-image" />
+                    ) : (
+                      <div className="category-placeholder"><ImageIcon /><span>No image set</span></div>
+                    )}
+                  </div>
                   <div className="category-actions">
                     <input type="text" placeholder="Paste image URL..." className="category-url-input" onKeyPress={function(e) { if (e.key === 'Enter') { handleCategoryImageSave(category, e.target.value); e.target.value = ''; } }} />
                   </div>
@@ -724,24 +940,53 @@ function AdminPanel() {
         </>
       )}
 
+      {/* Product Modal */}
       {showModal && (
         <div className="modal-overlay" onClick={function() { setShowModal(false); }}>
           <div className="modal-content" onClick={function(e) { e.stopPropagation(); }}>
-            <div className="modal-header"><h2>{editingProduct ? 'Edit Product' : 'Add New Product'}</h2><button className="modal-close" onClick={function() { setShowModal(false); }}><XIcon /></button></div>
+            <div className="modal-header">
+              <h2>{editingProduct ? 'Edit Product' : 'Add New Product'}</h2>
+              <button className="modal-close" onClick={function() { setShowModal(false); }}><XIcon /></button>
+            </div>
             <form className="product-form" onSubmit={handleFormSubmit}>
-              <div className="form-group"><label>Product Name</label><input type="text" value={formData.name} onChange={function(e) { setFormData({ ...formData, name: e.target.value }); }} placeholder="Enter product name" required /></div>
-              <div className="form-row">
-                <div className="form-group"><label>Price (₹)</label><input type="number" value={formData.price} onChange={function(e) { setFormData({ ...formData, price: e.target.value }); }} placeholder="0" required /></div>
-                <div className="form-group"><label>Stock</label><input type="number" value={formData.stock} onChange={function(e) { setFormData({ ...formData, stock: e.target.value }); }} placeholder="0" required /></div>
+              <div className="form-group">
+                <label>Product Name</label>
+                <input type="text" value={formData.name} onChange={function(e) { setFormData({ ...formData, name: e.target.value }); }} placeholder="Enter product name" required />
               </div>
-              <div className="form-group"><label>Category</label>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Price (₹)</label>
+                  <input type="number" value={formData.price} onChange={function(e) { setFormData({ ...formData, price: e.target.value }); }} placeholder="0" required />
+                </div>
+                <div className="form-group">
+                  <label>Stock</label>
+                  <input type="number" value={formData.stock} onChange={function(e) { setFormData({ ...formData, stock: e.target.value }); }} placeholder="0" required />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Category</label>
                 <select value={formData.category} onChange={function(e) { setFormData({ ...formData, category: e.target.value }); }} required>
-                  <option value="">Select Category</option><option value="strip-lights">Strip Lights</option><option value="panel-lights">Panel Lights</option><option value="decorative">Decorative</option><option value="outdoor">Outdoor</option><option value="smart-lights">Smart Lights</option><option value="accessories">Accessories</option>
+                  <option value="">Select Category</option>
+                  <option value="strip-lights">Strip Lights</option>
+                  <option value="panel-lights">Panel Lights</option>
+                  <option value="decorative">Decorative</option>
+                  <option value="outdoor">Outdoor</option>
+                  <option value="smart-lights">Smart Lights</option>
+                  <option value="accessories">Accessories</option>
                 </select>
               </div>
-              <div className="form-group"><label>Description</label><textarea value={formData.description} onChange={function(e) { setFormData({ ...formData, description: e.target.value }); }} placeholder="Enter product description" rows="3" /></div>
-              <div className="form-group"><label>Image URL</label><input type="text" value={formData.image} onChange={function(e) { setFormData({ ...formData, image: e.target.value }); }} placeholder="Paste image URL" /></div>
-              <div className="form-actions"><button type="button" className="cancel-btn" onClick={function() { setShowModal(false); }}>Cancel</button><button type="submit" className="submit-btn">{editingProduct ? 'Update Product' : 'Add Product'}</button></div>
+              <div className="form-group">
+                <label>Description</label>
+                <textarea value={formData.description} onChange={function(e) { setFormData({ ...formData, description: e.target.value }); }} placeholder="Enter product description" rows="3" />
+              </div>
+              <div className="form-group">
+                <label>Image URL</label>
+                <input type="text" value={formData.image} onChange={function(e) { setFormData({ ...formData, image: e.target.value }); }} placeholder="Paste image URL" />
+              </div>
+              <div className="form-actions">
+                <button type="button" className="cancel-btn" onClick={function() { setShowModal(false); }}>Cancel</button>
+                <button type="submit" className="submit-btn">{editingProduct ? 'Update Product' : 'Add Product'}</button>
+              </div>
             </form>
           </div>
         </div>
