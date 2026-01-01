@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { db, storage } from '../firebase/config';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, setDoc, getDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Link } from 'react-router-dom';
+import { getProducts, addProduct, updateProduct, deleteProduct, getOrders, updateOrderStatusOnly, getCategories, updateCategory, uploadImage } from '../services/api';
 import './adminpanel.css';
 
 // SVG Icons
@@ -367,21 +365,40 @@ function AdminPanel() {
   var fetchAllData = async function() {
     setLoading(true);
     try {
-      var ordersQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-      var ordersSnapshot = await getDocs(ordersQuery);
-      var ordersData = ordersSnapshot.docs.map(function(doc) { return { id: doc.id, ...doc.data() }; });
+      var ordersData = await getOrders();
       setOrders(ordersData);
 
-      var productsSnapshot = await getDocs(collection(db, 'products'));
-      var productsData = productsSnapshot.docs.map(function(doc) { return { id: doc.id, ...doc.data() }; });
+      var productsData = await getProducts();
       setProducts(productsData);
 
-      var customersSnapshot = await getDocs(collection(db, 'customers'));
-      var customersData = customersSnapshot.docs.map(function(doc) { return { id: doc.id, ...doc.data() }; });
-      setCustomers(customersData);
-
-      var categoriesDoc = await getDoc(doc(db, 'settings', 'led-categories'));
-      if (categoriesDoc.exists()) { setCategories(categoriesDoc.data()); }
+      var categoriesData = await getCategories();
+      var categoriesObj = {};
+      categoriesData.forEach(function(cat) {
+        categoriesObj[cat.id] = cat.image || '';
+      });
+      setCategories(categoriesObj);
+      
+      // Customers derived from orders
+      var customersMap = {};
+      ordersData.forEach(function(order) {
+        var email = order.email || 'unknown';
+        if (!customersMap[email]) {
+          customersMap[email] = {
+            id: email,
+            name: order.customerName || 'Unknown',
+            email: email,
+            phone: order.phone || 'N/A',
+            city: '',
+            orderCount: 0,
+            totalSpent: 0,
+            lastPaymentStatus: order.paymentStatus
+          };
+        }
+        customersMap[email].orderCount += 1;
+        customersMap[email].totalSpent += order.totalAmount || 0;
+        customersMap[email].lastPaymentStatus = order.paymentStatus;
+      });
+      setCustomers(Object.values(customersMap));
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -432,7 +449,7 @@ function AdminPanel() {
   };
 
   var getOrderTotal = function(ordersList) {
-    return ordersList.reduce(function(sum, order) { return sum + (order.total || order.amount || 0); }, 0);
+    return ordersList.reduce(function(sum, order) { return sum + (order.totalAmount || order.total || order.amount || 0); }, 0);
   };
 
   var handleFilterClick = function(filter) {
@@ -457,14 +474,14 @@ function AdminPanel() {
 
   var handleEditProduct = function(product) {
     setEditingProduct(product);
-    setFormData({ name: product.name || '', price: product.price || '', description: product.description || '', category: product.category || '', stock: product.stock || '', image: product.image || '' });
+    setFormData({ name: product.name || '', price: product.price || '', description: product.description || '', category: product.category || '', stock: product.stock || '', image: product.image || product.imageUrl || '' });
     setShowModal(true);
   };
 
   var handleDeleteProduct = async function(productId) {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
-        await deleteDoc(doc(db, 'products', productId));
+        await deleteProduct(productId);
         setProducts(products.filter(function(p) { return p.id !== productId; }));
       } catch (error) { console.error('Error deleting product:', error); }
     }
@@ -473,14 +490,13 @@ function AdminPanel() {
   var handleFormSubmit = async function(e) {
     e.preventDefault();
     try {
-      var productData = { name: formData.name, price: parseFloat(formData.price), description: formData.description, category: formData.category, stock: parseInt(formData.stock), image: formData.image, updatedAt: new Date() };
+      var productData = { name: formData.name, price: parseFloat(formData.price), description: formData.description, category: formData.category, stock: parseInt(formData.stock), image: formData.image || formData.imageUrl };
       if (editingProduct) {
-        await updateDoc(doc(db, 'products', editingProduct.id), productData);
+        await updateProduct(editingProduct.id, productData);
         setProducts(products.map(function(p) { return p.id === editingProduct.id ? { ...p, ...productData } : p; }));
       } else {
-        productData.createdAt = new Date();
-        var docRef = await addDoc(collection(db, 'products'), productData);
-        setProducts([...products, { id: docRef.id, ...productData }]);
+        var newId = await addProduct(productData);
+        setProducts([...products, { id: newId, ...productData }]);
       }
       setShowModal(false);
     } catch (error) { console.error('Error saving product:', error); }
@@ -488,15 +504,15 @@ function AdminPanel() {
 
   var handleCategoryImageSave = async function(categoryKey, imageUrl) {
     try {
+      await updateCategory(categoryKey, { name: categoryKey.split('-').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' '), image: imageUrl });
       var updatedCategories = { ...categories, [categoryKey]: imageUrl };
-      await setDoc(doc(db, 'settings', 'led-categories'), updatedCategories);
       setCategories(updatedCategories);
     } catch (error) { console.error('Error saving category image:', error); }
   };
 
-  var updateOrderStatus = async function(orderId, newStatus) {
+  var handleUpdateOrderStatus = async function(orderId, newStatus) {
     try {
-      await updateDoc(doc(db, 'orders', orderId), { status: newStatus });
+      await updateOrderStatusOnly(orderId, newStatus);
       setOrders(orders.map(function(order) { return order.id === orderId ? { ...order, status: newStatus } : order; }));
     } catch (error) { console.error('Error updating order status:', error); }
   };
@@ -781,7 +797,7 @@ function AdminPanel() {
                           </div>
                           <div className="order-info-item">
                             <span className="info-label">Amount</span>
-                            <span className="info-value amount">{formatCurrency(order.total || order.amount)}</span>
+                            <span className="info-value amount">{formatCurrency(order.totalAmount || order.total || order.amount)}</span>
                           </div>
                           <div className="order-info-item">
                             <span className="info-label">Items</span>
@@ -804,7 +820,7 @@ function AdminPanel() {
                       <div className="order-card-footer">
                         <div className="status-update">
                           <span className="update-label">Update Status:</span>
-                          <select className="status-select" value={orderStatus} onChange={function(e) { updateOrderStatus(order.id, e.target.value); }}>
+                          <select className="status-select" value={orderStatus} onChange={function(e) { handleUpdateOrderStatus(order.id, e.target.value); }}>
                             <option value="pending">New Order</option>
                             <option value="processing">Processing</option>
                             <option value="shipped">Shipped</option>
@@ -845,7 +861,7 @@ function AdminPanel() {
               return (
                 <div key={product.id} className="table-row">
                   <div className="table-cell" data-label="Image">
-                    <div className="product-thumb">{product.image ? (<img src={product.image} alt={product.name} />) : (<ImageIcon />)}</div>
+                    <div className="product-thumb">{(product.image || product.imageUrl) ? (<img src={product.image || product.imageUrl} alt={product.name} />) : (<ImageIcon />)}</div>
                   </div>
                   <div className="table-cell" data-label="Name"><span className="product-name">{product.name}</span></div>
                   <div className="table-cell" data-label="Category"><span className="category-badge">{product.category || 'Uncategorized'}</span></div>
@@ -917,7 +933,7 @@ function AdminPanel() {
             </div>
           </div>
           <div className="categories-management">
-            {['strip-lights', 'panel-lights', 'decorative', 'outdoor', 'smart-lights', 'accessories'].map(function(category) {
+            {['wall-light', 'fan', 'hanging', 'gate-light', 'bldc-fan', 'wall-fan', 'wall-washer', 'bulb', 'surface-lights'].map(function(category) {
               return (
                 <div key={category} className="category-card">
                   <div className="category-header">
@@ -967,12 +983,15 @@ function AdminPanel() {
                 <label>Category</label>
                 <select value={formData.category} onChange={function(e) { setFormData({ ...formData, category: e.target.value }); }} required>
                   <option value="">Select Category</option>
-                  <option value="strip-lights">Strip Lights</option>
-                  <option value="panel-lights">Panel Lights</option>
-                  <option value="decorative">Decorative</option>
-                  <option value="outdoor">Outdoor</option>
-                  <option value="smart-lights">Smart Lights</option>
-                  <option value="accessories">Accessories</option>
+                  <option value="wall-light">Wall Light</option>
+                  <option value="fan">Fan</option>
+                  <option value="hanging">Hanging</option>
+                  <option value="gate-light">Gate Light</option>
+                  <option value="bldc-fan">BLDC Fan</option>
+                  <option value="wall-fan">Wall Fan</option>
+                  <option value="wall-washer">Wall Washer</option>
+                  <option value="bulb">Bulb</option>
+                  <option value="surface-lights">Surface Lights</option>
                 </select>
               </div>
               <div className="form-group">
