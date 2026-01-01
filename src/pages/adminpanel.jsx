@@ -249,6 +249,16 @@ var WalletIcon = function() {
   );
 };
 
+var UploadIcon = function() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="17 8 12 3 7 8"/>
+      <line x1="12" y1="3" x2="12" y2="15"/>
+    </svg>
+  );
+};
+
 var BoxIcon = function() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -330,6 +340,22 @@ function AdminPanel() {
   var formDataState = useState({ name: '', price: '', description: '', category: '', stock: '', image: '' });
   var formData = formDataState[0];
   var setFormData = formDataState[1];
+
+  var uploadingState = useState(false);
+  var isUploading = uploadingState[0];
+  var setIsUploading = uploadingState[1];
+
+  var savingState = useState(false);
+  var isSaving = savingState[0];
+  var setIsSaving = savingState[1];
+
+  var imageFileState = useState(null);
+  var imageFile = imageFileState[0];
+  var setImageFile = imageFileState[1];
+
+  var imagePreviewState = useState('');
+  var imagePreview = imagePreviewState[0];
+  var setImagePreview = imagePreviewState[1];
 
   // Login Credentials
   var ADMIN_USERNAME = 'Laxora';
@@ -469,13 +495,55 @@ function AdminPanel() {
   var handleAddProduct = function() {
     setEditingProduct(null);
     setFormData({ name: '', price: '', description: '', category: '', stock: '', image: '' });
+    setImageFile(null);
+    setImagePreview('');
+    setIsSaving(false);
     setShowModal(true);
   };
 
   var handleEditProduct = function(product) {
     setEditingProduct(product);
-    setFormData({ name: product.name || '', price: product.price || '', description: product.description || '', category: product.category || '', stock: product.stock || '', image: product.image || product.imageUrl || '' });
+    setFormData({ 
+      name: product.name || '', 
+      price: product.price || '', 
+      description: product.description || '', 
+      category: product.category || '', 
+      stock: product.stock || '', 
+      image: product.imageUrl || product.image || '' 
+    });
+    setImageFile(null);
+    setImagePreview(product.imageUrl || product.image || '');
+    setIsSaving(false);
     setShowModal(true);
+  };
+
+  var handleImageChange = function(e) {
+    var file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size should be less than 5MB');
+        return;
+      }
+      setImageFile(file);
+      // Create preview
+      var reader = new FileReader();
+      reader.onloadend = function() {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  var handleRemoveImage = function() {
+    setImageFile(null);
+    setImagePreview('');
+    setFormData({ ...formData, image: '' });
   };
 
   var handleDeleteProduct = async function(productId) {
@@ -489,17 +557,71 @@ function AdminPanel() {
 
   var handleFormSubmit = async function(e) {
     e.preventDefault();
+    
+    if (isSaving) return;
+    
+    // Validate required fields
+    if (!formData.name || !formData.name.trim()) {
+      alert('Please enter a product name');
+      return;
+    }
+    if (!formData.price || parseFloat(formData.price) <= 0) {
+      alert('Please enter a valid price');
+      return;
+    }
+    if (!formData.category) {
+      alert('Please select a category');
+      return;
+    }
+    
+    setIsSaving(true);
+    
     try {
-      var productData = { name: formData.name, price: parseFloat(formData.price), description: formData.description, category: formData.category, stock: parseInt(formData.stock), image: formData.image || formData.imageUrl };
+      var finalImageUrl = formData.image || '';
+      
+      // Upload image file if selected
+      if (imageFile) {
+        console.log('Uploading image file...');
+        finalImageUrl = await uploadImage(imageFile);
+        console.log('Image uploaded:', finalImageUrl);
+      }
+      
+      var productData = { 
+        name: formData.name.trim(), 
+        price: parseFloat(formData.price) || 0, 
+        description: formData.description || '', 
+        category: formData.category, 
+        stock: parseInt(formData.stock) || 0, 
+        imageUrl: finalImageUrl
+      };
+      
+      console.log('Saving product:', productData);
+      
       if (editingProduct) {
         await updateProduct(editingProduct.id, productData);
-        setProducts(products.map(function(p) { return p.id === editingProduct.id ? { ...p, ...productData } : p; }));
+        setProducts(products.map(function(p) { 
+          if (p.id === editingProduct.id) {
+            return { ...p, ...productData };
+          }
+          return p;
+        }));
+        console.log('Product updated successfully');
       } else {
         var newId = await addProduct(productData);
-        setProducts([...products, { id: newId, ...productData }]);
+        console.log('Product added with ID:', newId);
+        setProducts(products.concat([{ id: newId, ...productData }]));
       }
       setShowModal(false);
-    } catch (error) { console.error('Error saving product:', error); }
+      setFormData({ name: '', price: '', description: '', category: '', stock: '', image: '' });
+      setImageFile(null);
+      setImagePreview('');
+      setEditingProduct(null);
+    } catch (error) { 
+      console.error('Error saving product:', error); 
+      alert('Error saving product: ' + (error.message || 'Unknown error'));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   var handleCategoryImageSave = async function(categoryKey, imageUrl) {
@@ -861,7 +983,7 @@ function AdminPanel() {
               return (
                 <div key={product.id} className="table-row">
                   <div className="table-cell" data-label="Image">
-                    <div className="product-thumb">{(product.image || product.imageUrl) ? (<img src={product.image || product.imageUrl} alt={product.name} />) : (<ImageIcon />)}</div>
+                    <div className="product-thumb">{(product.imageUrl || product.image) ? (<img src={product.imageUrl || product.image} alt={product.name} />) : (<ImageIcon />)}</div>
                   </div>
                   <div className="table-cell" data-label="Name"><span className="product-name">{product.name}</span></div>
                   <div className="table-cell" data-label="Category"><span className="category-badge">{product.category || 'Uncategorized'}</span></div>
@@ -966,22 +1088,22 @@ function AdminPanel() {
             </div>
             <form className="product-form" onSubmit={handleFormSubmit}>
               <div className="form-group">
-                <label>Product Name</label>
-                <input type="text" value={formData.name} onChange={function(e) { setFormData({ ...formData, name: e.target.value }); }} placeholder="Enter product name" required />
+                <label>Product Name *</label>
+                <input type="text" value={formData.name || ''} onChange={function(e) { setFormData({ ...formData, name: e.target.value }); }} placeholder="Enter product name" />
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label>Price (₹)</label>
-                  <input type="number" value={formData.price} onChange={function(e) { setFormData({ ...formData, price: e.target.value }); }} placeholder="0" required />
+                  <label>Price (₹) *</label>
+                  <input type="number" value={formData.price || ''} onChange={function(e) { setFormData({ ...formData, price: e.target.value }); }} placeholder="0" min="0" />
                 </div>
                 <div className="form-group">
                   <label>Stock</label>
-                  <input type="number" value={formData.stock} onChange={function(e) { setFormData({ ...formData, stock: e.target.value }); }} placeholder="0" required />
+                  <input type="number" value={formData.stock || ''} onChange={function(e) { setFormData({ ...formData, stock: e.target.value }); }} placeholder="0" min="0" />
                 </div>
               </div>
               <div className="form-group">
-                <label>Category</label>
-                <select value={formData.category} onChange={function(e) { setFormData({ ...formData, category: e.target.value }); }} required>
+                <label>Category *</label>
+                <select value={formData.category || ''} onChange={function(e) { setFormData({ ...formData, category: e.target.value }); }}>
                   <option value="">Select Category</option>
                   <option value="wall-light">Wall Light</option>
                   <option value="fan">Fan</option>
@@ -996,15 +1118,51 @@ function AdminPanel() {
               </div>
               <div className="form-group">
                 <label>Description</label>
-                <textarea value={formData.description} onChange={function(e) { setFormData({ ...formData, description: e.target.value }); }} placeholder="Enter product description" rows="3" />
+                <textarea value={formData.description || ''} onChange={function(e) { setFormData({ ...formData, description: e.target.value }); }} placeholder="Enter product description" rows="3" />
               </div>
               <div className="form-group">
-                <label>Image URL</label>
-                <input type="text" value={formData.image} onChange={function(e) { setFormData({ ...formData, image: e.target.value }); }} placeholder="Paste image URL" />
+                <label>Product Image</label>
+                <div className="image-upload-section">
+                  {(imagePreview || formData.image) && (
+                    <div className="image-preview">
+                      <img src={imagePreview || formData.image} alt="Product preview" />
+                      <button type="button" className="remove-image-btn" onClick={handleRemoveImage}>
+                        <XIcon />
+                      </button>
+                    </div>
+                  )}
+                  {!imagePreview && !formData.image && (
+                    <div className="upload-options">
+                      <div className="upload-box">
+                        <input 
+                          type="file" 
+                          id="product-image-upload" 
+                          accept="image/*" 
+                          onChange={handleImageChange}
+                          disabled={isSaving}
+                          style={{ display: 'none' }}
+                        />
+                        <label htmlFor="product-image-upload" className="upload-label">
+                          <UploadIcon />
+                          <span>Click to upload image</span>
+                          <span className="upload-hint">PNG, JPG up to 5MB</span>
+                        </label>
+                      </div>
+                      <div className="upload-divider"><span>OR</span></div>
+                      <input 
+                        type="text" 
+                        value={formData.image || ''} 
+                        onChange={function(e) { setFormData({ ...formData, image: e.target.value }); setImagePreview(e.target.value); }} 
+                        placeholder="Paste image URL here" 
+                        className="url-input"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="form-actions">
-                <button type="button" className="cancel-btn" onClick={function() { setShowModal(false); }}>Cancel</button>
-                <button type="submit" className="submit-btn">{editingProduct ? 'Update Product' : 'Add Product'}</button>
+                <button type="button" className="cancel-btn" onClick={function() { setShowModal(false); }} disabled={isSaving}>Cancel</button>
+                <button type="submit" className="submit-btn" disabled={isSaving}>{isSaving ? 'Saving...' : (editingProduct ? 'Update Product' : 'Add Product')}</button>
               </div>
             </form>
           </div>
