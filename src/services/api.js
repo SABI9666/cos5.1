@@ -16,7 +16,7 @@ import {
 // Firebase configuration
 var firebaseConfig = {
   apiKey: "AIzaSyAoRjQqAP-3QO9rjoQK7SSZ788lyMmhXmU",
-  authDomain: "eb-tracker-42881.firebaseapp.com",
+  authDomain: "cos5-1.vercel.app",
   projectId: "eb-tracker-42881",
   storageBucket: "eb-tracker-42881.firebasestorage.app",
   messagingSenderId: "922340749018",
