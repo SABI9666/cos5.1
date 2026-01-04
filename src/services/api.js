@@ -6,8 +6,7 @@ import {
   getAuth, 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithPopup, 
   GoogleAuthProvider, 
   signOut, 
   onAuthStateChanged,
@@ -229,22 +228,10 @@ export var loginWithEmail = async function(email, password) {
 
 export var loginWithGoogle = async function() {
   try {
-    await signInWithRedirect(auth, googleProvider);
+    var result = await signInWithPopup(auth, googleProvider);
+    return result.user;
   } catch (error) {
     console.error('Error with Google login:', error);
-    throw error;
-  }
-};
-
-export var handleGoogleRedirect = async function() {
-  try {
-    var result = await getRedirectResult(auth);
-    if (result) {
-      return result.user;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error handling Google redirect:', error);
     throw error;
   }
 };
