@@ -6,7 +6,8 @@ import {
   getAuth, 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
-  signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider, 
   signOut, 
   onAuthStateChanged,
@@ -16,7 +17,7 @@ import {
 // Firebase configuration
 var firebaseConfig = {
   apiKey: "AIzaSyAoRjQqAP-3QO9rjoQK7SSZ788lyMmhXmU",
-  authDomain: "cos5-1.vercel.app",
+  authDomain: "eb-tracker-42881.firebaseapp.com",
   projectId: "eb-tracker-42881",
   storageBucket: "eb-tracker-42881.firebasestorage.app",
   messagingSenderId: "922340749018",
@@ -228,10 +229,22 @@ export var loginWithEmail = async function(email, password) {
 
 export var loginWithGoogle = async function() {
   try {
-    var result = await signInWithPopup(auth, googleProvider);
-    return result.user;
+    await signInWithRedirect(auth, googleProvider);
   } catch (error) {
     console.error('Error with Google login:', error);
+    throw error;
+  }
+};
+
+export var handleGoogleRedirect = async function() {
+  try {
+    var result = await getRedirectResult(auth);
+    if (result) {
+      return result.user;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error handling Google redirect:', error);
     throw error;
   }
 };
