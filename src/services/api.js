@@ -600,3 +600,37 @@ export var initializeRazorpayPayment = function(options) {
     rzp.open();
   });
 };
+
+// ==================== SOCIAL SETTINGS FUNCTIONS ====================
+
+// Get social settings (WhatsApp, Instagram)
+export var getSocialSettings = async function() {
+  try {
+    var settingsRef = doc(db, 'led-settings', 'social');
+    var docSnap = await getDoc(settingsRef);
+    
+    if (docSnap.exists()) {
+      return docSnap.data();
+    }
+    return { whatsapp: '', instagram: '' };
+  } catch (error) {
+    console.error('Error getting social settings:', error);
+    return { whatsapp: '', instagram: '' };
+  }
+};
+
+// Save social settings
+export var saveSocialSettings = async function(settings) {
+  try {
+    var settingsRef = doc(db, 'led-settings', 'social');
+    await setDoc(settingsRef, {
+      whatsapp: settings.whatsapp || '',
+      instagram: settings.instagram || '',
+      updatedAt: new Date().toISOString()
+    });
+    return true;
+  } catch (error) {
+    console.error('Error saving social settings:', error);
+    throw error;
+  }
+};
