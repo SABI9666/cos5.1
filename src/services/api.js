@@ -118,7 +118,11 @@ var defaultCategories = [
   { id: 'wall-fan', name: 'Wall Fan', image: '' },
   { id: 'wall-washer', name: 'Wall Washer', image: '' },
   { id: 'bulb', name: 'Bulb', image: '' },
-  { id: 'surface-lights', name: 'Surface Lights', image: '' }
+  { id: 'surface-lights', name: 'Surface Lights', image: '' },
+  { id: 'street-light', name: 'Street Light', image: '' },
+  { id: 'spot-light', name: 'Spot Light', image: '' },
+  { id: 'cylinder-light', name: 'Cylinder Light', image: '' },
+  { id: 'smps', name: 'SMPS', image: '' }
 ];
 
 // Get all categories
