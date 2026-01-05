@@ -1163,7 +1163,7 @@ function AdminPanel() {
             <button className="refresh-btn" onClick={fetchAllData}><RefreshIcon /><span>Refresh</span></button>
           </div>
           <div className="categories-management">
-            {['wall-light', 'fan', 'hanging', 'gate-light', 'bldc-fan', 'wall-fan', 'wall-washer', 'bulb', 'surface-lights'].map(function(categoryId) {
+            {['wall-light', 'fan', 'hanging', 'gate-light', 'bldc-fan', 'wall-fan', 'wall-washer', 'bulb', 'surface-lights', 'street-light', 'spot-light', 'cylinder-light', 'smps'].map(function(categoryId) {
               var categoryName = categoryId.split('-').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ');
               var hasImage = categories[categoryId] && categories[categoryId].length > 0;
               
@@ -1363,6 +1363,10 @@ function AdminPanel() {
                   <option value="wall-washer">Wall Washer</option>
                   <option value="bulb">Bulb</option>
                   <option value="surface-lights">Surface Lights</option>
+                  <option value="street-light">Street Light</option>
+                  <option value="spot-light">Spot Light</option>
+                  <option value="cylinder-light">Cylinder Light</option>
+                  <option value="smps">SMPS</option>
                 </select>
               </div>
               <div className="form-group">
