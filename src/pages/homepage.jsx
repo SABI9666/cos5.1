@@ -35,7 +35,11 @@ function HomePage(props) {
     { id: 'wall-fan', name: 'Wall Fan', image: '', link: '/products?category=wall-fan' },
     { id: 'wall-washer', name: 'Wall Washer', image: '', link: '/products?category=wall-washer' },
     { id: 'bulb', name: 'Bulb', image: '', link: '/products?category=bulb' },
-    { id: 'surface-lights', name: 'Surface Lights', image: '', link: '/products?category=surface-lights' }
+    { id: 'surface-lights', name: 'Surface Lights', image: '', link: '/products?category=surface-lights' },
+    { id: 'street-light', name: 'Street Light', image: '', link: '/products?category=street-light' },
+    { id: 'spot-light', name: 'Spot Light', image: '', link: '/products?category=spot-light' },
+    { id: 'cylinder-light', name: 'Cylinder Light', image: '', link: '/products?category=cylinder-light' },
+    { id: 'smps', name: 'SMPS', image: '', link: '/products?category=smps' }
   ]);
   var categories = categoriesState[0];
   var setCategories = categoriesState[1];
