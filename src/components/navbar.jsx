@@ -137,7 +137,7 @@ function Navbar(props) {
     <React.Fragment>
       <nav className={scrolled ? "navbar scrolled" : "navbar"}>
         <div className="navbar-container">
-          <Link to="/" className="logo">LaxoraLED</Link>
+          <Link to="/" className="logo">Laxorashopping</Link>
           
           <ul className="nav-links desktop-nav">
             <li>
