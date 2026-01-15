@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/navbar.jsx';
 import Footer from '../components/footer.jsx';
-import { getProducts } from '../services/api';
+import { getProducts, getCategories } from '../services/api';
 import './productspage.css';
 
 function ProductsPage(props) {
   var addToCart = props.addToCart;
   var onCartClick = props.onCartClick;
   var cartCount = props.cartCount;
+
+  // Get URL search params
+  var searchParamsResult = useSearchParams();
+  var searchParams = searchParamsResult[0];
+  var setSearchParams = searchParamsResult[1];
 
   var productsState = useState([]);
   var products = productsState[0];
@@ -17,6 +22,11 @@ function ProductsPage(props) {
   var loadingState = useState(true);
   var loading = loadingState[0];
   var setLoading = loadingState[1];
+
+  // Categories from Firebase
+  var categoriesDataState = useState([]);
+  var categoriesData = categoriesDataState[0];
+  var setCategoriesData = categoriesDataState[1];
 
   var categoryState = useState('All');
   var selectedCategory = categoryState[0];
@@ -34,9 +44,38 @@ function ProductsPage(props) {
   var showMobileFilter = mobileFilterState[0];
   var setShowMobileFilter = mobileFilterState[1];
 
+  // Load products and categories
   useEffect(function() {
     loadProducts();
+    loadCategoriesData();
   }, []);
+
+  // Handle URL query parameter for category
+  useEffect(function() {
+    var categoryParam = searchParams.get('category');
+    if (categoryParam && categoriesData.length > 0) {
+      // Find category by ID or name (case-insensitive)
+      var foundCategory = categoriesData.find(function(cat) {
+        return cat.id === categoryParam || 
+               cat.id.toLowerCase() === categoryParam.toLowerCase() ||
+               cat.name.toLowerCase() === categoryParam.toLowerCase();
+      });
+      
+      if (foundCategory) {
+        setSelectedCategory(foundCategory.name);
+      } else {
+        // Try direct match with product categories
+        var productCategory = products.find(function(p) {
+          return p.category && p.category.toLowerCase() === categoryParam.toLowerCase();
+        });
+        if (productCategory) {
+          setSelectedCategory(productCategory.category);
+        }
+      }
+    } else if (!categoryParam) {
+      setSelectedCategory('All');
+    }
+  }, [searchParams, categoriesData, products]);
 
   function loadProducts() {
     setLoading(true);
@@ -51,28 +90,104 @@ function ProductsPage(props) {
       });
   }
 
-  // Get unique categories
+  function loadCategoriesData() {
+    getCategories()
+      .then(function(data) {
+        if (data && data.length > 0) {
+          setCategoriesData(data);
+        }
+      })
+      .catch(function(error) {
+        console.error('Error loading categories:', error);
+      });
+  }
+
+  // Build categories list from both Firebase categories and actual product categories
   var categories = ['All'];
+  
+  // First add categories from Firebase
+  categoriesData.forEach(function(cat) {
+    if (cat.name && categories.indexOf(cat.name) === -1) {
+      categories.push(cat.name);
+    }
+  });
+  
+  // Then add any product categories that might not be in Firebase
   products.forEach(function(product) {
     if (product.category && categories.indexOf(product.category) === -1) {
       categories.push(product.category);
     }
   });
 
-  // Get category counts
-  function getCategoryCount(category) {
-    if (category === 'All') return products.length;
+  // Get category count - check both exact match and ID match
+  function getCategoryCount(categoryName) {
+    if (categoryName === 'All') return products.length;
+    
+    // Find the category data to get the ID
+    var catData = categoriesData.find(function(c) {
+      return c.name === categoryName;
+    });
+    
     return products.filter(function(p) {
-      return p.category === category;
+      if (!p.category) return false;
+      
+      // Check for exact name match (case-insensitive)
+      if (p.category.toLowerCase() === categoryName.toLowerCase()) {
+        return true;
+      }
+      
+      // Check if product category matches category ID
+      if (catData && p.category.toLowerCase() === catData.id.toLowerCase()) {
+        return true;
+      }
+      
+      // Check if product category matches without hyphens/spaces
+      var normalizedProductCat = p.category.toLowerCase().replace(/[-\s]/g, '');
+      var normalizedCategoryName = categoryName.toLowerCase().replace(/[-\s]/g, '');
+      if (normalizedProductCat === normalizedCategoryName) {
+        return true;
+      }
+      
+      return false;
     }).length;
   }
 
-  // Filter and sort products
+  // Filter products - match by category name or category ID
   var filteredProducts = products.filter(function(product) {
-    var matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
+    var matchesCategory = false;
+    
+    if (selectedCategory === 'All') {
+      matchesCategory = true;
+    } else {
+      // Find the category data to get the ID
+      var catData = categoriesData.find(function(c) {
+        return c.name === selectedCategory;
+      });
+      
+      if (product.category) {
+        // Check for exact name match (case-insensitive)
+        if (product.category.toLowerCase() === selectedCategory.toLowerCase()) {
+          matchesCategory = true;
+        }
+        // Check if product category matches category ID
+        else if (catData && product.category.toLowerCase() === catData.id.toLowerCase()) {
+          matchesCategory = true;
+        }
+        // Check normalized match (without hyphens/spaces)
+        else {
+          var normalizedProductCat = product.category.toLowerCase().replace(/[-\s]/g, '');
+          var normalizedSelectedCat = selectedCategory.toLowerCase().replace(/[-\s]/g, '');
+          if (normalizedProductCat === normalizedSelectedCat) {
+            matchesCategory = true;
+          }
+        }
+      }
+    }
+    
     var matchesSearch = !searchQuery || 
       (product.name && product.name.toLowerCase().indexOf(searchQuery.toLowerCase()) !== -1) ||
       (product.category && product.category.toLowerCase().indexOf(searchQuery.toLowerCase()) !== -1);
+    
     return matchesCategory && matchesSearch;
   });
 
@@ -88,6 +203,22 @@ function ProductsPage(props) {
   function handleCategoryClick(category) {
     setSelectedCategory(category);
     setShowMobileFilter(false);
+    
+    // Update URL parameter
+    if (category === 'All') {
+      searchParams.delete('category');
+    } else {
+      // Find category ID for URL
+      var catData = categoriesData.find(function(c) {
+        return c.name === category;
+      });
+      if (catData) {
+        searchParams.set('category', catData.id);
+      } else {
+        searchParams.set('category', category.toLowerCase().replace(/\s+/g, '-'));
+      }
+    }
+    setSearchParams(searchParams);
   }
 
   function handleImageError(e) {
@@ -100,6 +231,14 @@ function ProductsPage(props) {
     if (addToCart) {
       addToCart(product);
     }
+  }
+
+  function handleClearAll() {
+    setSelectedCategory('All');
+    setSearchQuery('');
+    setSortBy('default');
+    searchParams.delete('category');
+    setSearchParams(searchParams);
   }
 
   return (
@@ -265,7 +404,7 @@ function ProductsPage(props) {
                 {selectedCategory !== 'All' && (
                   <span className="filter-tag">
                     {selectedCategory}
-                    <button onClick={function() { setSelectedCategory('All'); }}>×</button>
+                    <button onClick={function() { handleCategoryClick('All'); }}>×</button>
                   </span>
                 )}
                 {searchQuery && (
@@ -276,7 +415,7 @@ function ProductsPage(props) {
                 )}
                 <button 
                   className="clear-all-btn"
-                  onClick={function() { setSelectedCategory('All'); setSearchQuery(''); setSortBy('default'); }}
+                  onClick={handleClearAll}
                 >
                   Clear All
                 </button>
@@ -301,7 +440,7 @@ function ProductsPage(props) {
                 <p>Try adjusting your filters or search query</p>
                 <button 
                   className="clear-filters-btn"
-                  onClick={function() { setSelectedCategory('All'); setSearchQuery(''); }}
+                  onClick={handleClearAll}
                 >
                   Clear Filters
                 </button>
