@@ -462,6 +462,51 @@ function AdminPanel() {
   var newSubcategory = newSubcategoryState[0];
   var setNewSubcategory = newSubcategoryState[1];
 
+  // Quick Add Subcategory states
+  var quickAddMainCatState = useState('');
+  var quickAddMainCat = quickAddMainCatState[0];
+  var setQuickAddMainCat = quickAddMainCatState[1];
+
+  var quickAddSubcatNameState = useState('');
+  var quickAddSubcatName = quickAddSubcatNameState[0];
+  var setQuickAddSubcatName = quickAddSubcatNameState[1];
+
+  // Main Category Modal states
+  var showMainCategoryModalState = useState(false);
+  var showMainCategoryModal = showMainCategoryModalState[0];
+  var setShowMainCategoryModal = showMainCategoryModalState[1];
+
+  var editingMainCategoryState = useState(null);
+  var editingMainCategory = editingMainCategoryState[0];
+  var setEditingMainCategory = editingMainCategoryState[1];
+
+  var mainCatFormDataState = useState({
+    name: '',
+    description: '',
+    icon: 'grid',
+    color: '#3b82f6',
+    image: ''
+  });
+  var mainCatFormData = mainCatFormDataState[0];
+  var setMainCatFormData = mainCatFormDataState[1];
+
+  // Subcategory Edit Modal states
+  var showSubcategoryModalState = useState(false);
+  var showSubcategoryModal = showSubcategoryModalState[0];
+  var setShowSubcategoryModal = showSubcategoryModalState[1];
+
+  var editSubcatMainCatState = useState('');
+  var editSubcatMainCat = editSubcatMainCatState[0];
+  var setEditSubcatMainCat = editSubcatMainCatState[1];
+
+  var editSubcatIdState = useState('');
+  var editSubcatId = editSubcatIdState[0];
+  var setEditSubcatId = editSubcatIdState[1];
+
+  var editSubcatNameState = useState('');
+  var editSubcatName = editSubcatNameState[0];
+  var setEditSubcatName = editSubcatNameState[1];
+
   var loadingState = useState(true);
   var loading = loadingState[0];
   var setLoading = loadingState[1];
@@ -884,6 +929,164 @@ function AdminPanel() {
     setMainCategories(updatedCategories);
   };
 
+  // Quick Add Subcategory handler
+  var handleQuickAddSubcategory = function() {
+    if (!quickAddMainCat || !quickAddSubcatName.trim()) {
+      alert('Please select a main category and enter subcategory name');
+      return;
+    }
+    
+    var newSubcatId = quickAddSubcatName.trim().toLowerCase().replace(/\s+/g, '-');
+    
+    // Check if subcategory already exists
+    var exists = mainCategories[quickAddMainCat].subcategories.some(function(sub) {
+      return sub.id === newSubcatId;
+    });
+    
+    if (exists) {
+      alert('A subcategory with this name already exists!');
+      return;
+    }
+    
+    var updatedCategories = { ...mainCategories };
+    updatedCategories[quickAddMainCat].subcategories.push({
+      id: newSubcatId,
+      name: quickAddSubcatName.trim()
+    });
+    
+    setMainCategories(updatedCategories);
+    setQuickAddSubcatName('');
+    alert('Subcategory added successfully!');
+  };
+
+  // Main Category handlers
+  var resetMainCategoryForm = function() {
+    setMainCatFormData({
+      name: '',
+      description: '',
+      icon: 'grid',
+      color: '#3b82f6',
+      image: ''
+    });
+    setEditingMainCategory(null);
+  };
+
+  var handleEditMainCategory = function(mainCatId) {
+    var cat = mainCategories[mainCatId];
+    setEditingMainCategory(mainCatId);
+    setMainCatFormData({
+      name: cat.name,
+      description: cat.description || '',
+      icon: cat.icon || 'grid',
+      color: cat.color || '#3b82f6',
+      image: cat.image || ''
+    });
+    setShowMainCategoryModal(true);
+  };
+
+  var handleDeleteMainCategory = function(mainCatId) {
+    var cat = mainCategories[mainCatId];
+    if (!window.confirm('Are you sure you want to delete "' + cat.name + '" and all its subcategories? This action cannot be undone.')) {
+      return;
+    }
+    
+    var updatedCategories = { ...mainCategories };
+    delete updatedCategories[mainCatId];
+    setMainCategories(updatedCategories);
+  };
+
+  var handleMainCategorySubmit = function(e) {
+    e.preventDefault();
+    
+    if (!mainCatFormData.name.trim()) {
+      alert('Please enter a category name');
+      return;
+    }
+    
+    var catId = editingMainCategory || mainCatFormData.name.trim().toLowerCase().replace(/\s+/g, '-');
+    
+    // Check if new category ID already exists (only when adding)
+    if (!editingMainCategory && mainCategories[catId]) {
+      alert('A category with this name already exists!');
+      return;
+    }
+    
+    var updatedCategories = { ...mainCategories };
+    
+    if (editingMainCategory) {
+      // Update existing
+      updatedCategories[editingMainCategory] = {
+        ...updatedCategories[editingMainCategory],
+        name: mainCatFormData.name.trim(),
+        description: mainCatFormData.description,
+        icon: mainCatFormData.icon,
+        color: mainCatFormData.color,
+        gradient: 'linear-gradient(135deg, ' + mainCatFormData.color + ' 0%, ' + adjustColor(mainCatFormData.color, -20) + ' 100%)',
+        image: mainCatFormData.image
+      };
+    } else {
+      // Add new
+      updatedCategories[catId] = {
+        id: catId,
+        name: mainCatFormData.name.trim(),
+        description: mainCatFormData.description,
+        icon: mainCatFormData.icon,
+        color: mainCatFormData.color,
+        gradient: 'linear-gradient(135deg, ' + mainCatFormData.color + ' 0%, ' + adjustColor(mainCatFormData.color, -20) + ' 100%)',
+        image: mainCatFormData.image || 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=600',
+        subcategories: []
+      };
+      
+      // Expand the new category
+      setExpandedCategories({ ...expandedCategories, [catId]: true });
+    }
+    
+    setMainCategories(updatedCategories);
+    setShowMainCategoryModal(false);
+    resetMainCategoryForm();
+  };
+
+  // Helper function to adjust color brightness
+  var adjustColor = function(color, percent) {
+    var num = parseInt(color.replace('#', ''), 16);
+    var amt = Math.round(2.55 * percent);
+    var R = (num >> 16) + amt;
+    var G = (num >> 8 & 0x00FF) + amt;
+    var B = (num & 0x0000FF) + amt;
+    R = Math.max(Math.min(255, R), 0);
+    G = Math.max(Math.min(255, G), 0);
+    B = Math.max(Math.min(255, B), 0);
+    return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+  };
+
+  // Subcategory Edit handlers
+  var handleEditSubcategory = function(mainCatId, subcat) {
+    setEditSubcatMainCat(mainCatId);
+    setEditSubcatId(subcat.id);
+    setEditSubcatName(subcat.name);
+    setShowSubcategoryModal(true);
+  };
+
+  var handleSubcategoryEditSubmit = function(e) {
+    e.preventDefault();
+    
+    if (!editSubcatName.trim()) {
+      alert('Please enter a subcategory name');
+      return;
+    }
+    
+    var updatedCategories = { ...mainCategories };
+    updatedCategories[editSubcatMainCat].subcategories = updatedCategories[editSubcatMainCat].subcategories.map(function(sub) {
+      if (sub.id === editSubcatId) {
+        return { ...sub, name: editSubcatName.trim() };
+      }
+      return sub;
+    });
+    
+    setMainCategories(updatedCategories);
+    setShowSubcategoryModal(false);
+  };
+
   // Get subcategories for selected main category
   var getSubcategoriesForMainCategory = function(mainCategoryId) {
     if (!mainCategoryId || !mainCategories[mainCategoryId]) {
@@ -913,6 +1116,32 @@ function AdminPanel() {
       case 'bulb': return <LightBulbIcon />;
       case 'shirt': return <ShirtIcon />;
       case 'baby': return <BabyIcon />;
+      case 'box': return <BoxIcon />;
+      case 'star': return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+      );
+      case 'heart': return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+      );
+      case 'home': return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      );
+      case 'gift': return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="20 12 20 22 4 22 4 12"/>
+          <rect x="2" y="7" width="20" height="5"/>
+          <line x1="12" y1="22" x2="12" y2="7"/>
+          <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
+          <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+        </svg>
+      );
       default: return <GridIcon />;
     }
   };
@@ -1252,7 +1481,55 @@ function AdminPanel() {
               <h2>Category Management</h2>
               <p className="tab-subtitle">Manage main categories and subcategories</p>
             </div>
-            <button className="refresh-btn" onClick={fetchAllData}><RefreshIcon /><span>Refresh</span></button>
+            <div className="tab-header-actions">
+              <button className="add-btn" onClick={function() { setShowMainCategoryModal(true); }}>
+                <PlusIcon /><span>Add Main Category</span>
+              </button>
+              <button className="refresh-btn" onClick={fetchAllData}><RefreshIcon /><span>Refresh</span></button>
+            </div>
+          </div>
+          
+          {/* Quick Add Subcategory Panel */}
+          <div className="quick-add-panel">
+            <div className="quick-add-header">
+              <PlusIcon />
+              <h3>Quick Add Subcategory</h3>
+            </div>
+            <div className="quick-add-form">
+              <div className="quick-add-field">
+                <label>Select Main Category</label>
+                <select 
+                  value={quickAddMainCat}
+                  onChange={function(e) { setQuickAddMainCat(e.target.value); }}
+                  className="quick-add-select"
+                >
+                  <option value="">-- Select Main Category --</option>
+                  {Object.keys(mainCategories).map(function(catId) {
+                    return (
+                      <option key={catId} value={catId}>{mainCategories[catId].name}</option>
+                    );
+                  })}
+                </select>
+              </div>
+              <div className="quick-add-field">
+                <label>Subcategory Name</label>
+                <input 
+                  type="text"
+                  placeholder="Enter subcategory name..."
+                  value={quickAddSubcatName}
+                  onChange={function(e) { setQuickAddSubcatName(e.target.value); }}
+                  className="quick-add-input"
+                />
+              </div>
+              <button 
+                className="quick-add-btn"
+                onClick={handleQuickAddSubcategory}
+                disabled={!quickAddMainCat || !quickAddSubcatName.trim()}
+              >
+                <PlusIcon />
+                <span>Add Subcategory</span>
+              </button>
+            </div>
           </div>
           
           <div className="categories-hierarchy-container">
@@ -1272,50 +1549,91 @@ function AdminPanel() {
                         <span className="subcategory-count">{mainCat.subcategories.length} subcategories</span>
                       </div>
                     </div>
-                    <button className="expand-btn">
-                      {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
-                    </button>
+                    <div className="main-category-actions">
+                      <button 
+                        className="main-cat-edit-btn"
+                        onClick={function(e) { 
+                          e.stopPropagation();
+                          handleEditMainCategory(mainCatId);
+                        }}
+                        title="Edit Category"
+                      >
+                        <EditIcon />
+                      </button>
+                      <button 
+                        className="main-cat-delete-btn"
+                        onClick={function(e) { 
+                          e.stopPropagation();
+                          handleDeleteMainCategory(mainCatId);
+                        }}
+                        title="Delete Category"
+                      >
+                        <TrashIcon />
+                      </button>
+                      <button className="expand-btn">
+                        {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
+                      </button>
+                    </div>
                   </div>
                   
                   {isExpanded && (
                     <div className="subcategories-section">
                       <div className="subcategories-list">
-                        {mainCat.subcategories.map(function(subcat) {
-                          return (
-                            <div key={subcat.id} className="subcategory-item">
-                              <span className="subcategory-name">{subcat.name}</span>
-                              <span className="subcategory-id">{subcat.id}</span>
-                              <button 
-                                className="subcategory-delete-btn"
-                                onClick={function() { handleDeleteSubcategory(mainCatId, subcat.id); }}
-                              >
-                                <TrashIcon />
-                              </button>
-                            </div>
-                          );
-                        })}
+                        {mainCat.subcategories.length === 0 ? (
+                          <div className="no-subcategories">
+                            <span>No subcategories yet. Add one below!</span>
+                          </div>
+                        ) : (
+                          mainCat.subcategories.map(function(subcat) {
+                            return (
+                              <div key={subcat.id} className="subcategory-item">
+                                <span className="subcategory-name">{subcat.name}</span>
+                                <span className="subcategory-id">{subcat.id}</span>
+                                <div className="subcategory-actions">
+                                  <button 
+                                    className="subcategory-edit-btn"
+                                    onClick={function() { handleEditSubcategory(mainCatId, subcat); }}
+                                    title="Edit"
+                                  >
+                                    <EditIcon />
+                                  </button>
+                                  <button 
+                                    className="subcategory-delete-btn"
+                                    onClick={function() { handleDeleteSubcategory(mainCatId, subcat.id); }}
+                                    title="Delete"
+                                  >
+                                    <TrashIcon />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
                       </div>
                       
                       <div className="add-subcategory-form">
-                        <input 
-                          type="text" 
-                          placeholder="New subcategory name..."
-                          value={newSubcategory[mainCatId] || ''}
-                          onChange={function(e) { 
-                            setNewSubcategory({ ...newSubcategory, [mainCatId]: e.target.value }); 
-                          }}
-                          onKeyPress={function(e) {
-                            if (e.key === 'Enter') {
-                              handleAddSubcategory(mainCatId);
-                            }
-                          }}
-                        />
+                        <div className="add-subcat-input-wrapper">
+                          <input 
+                            type="text" 
+                            placeholder="Enter new subcategory name..."
+                            value={newSubcategory[mainCatId] || ''}
+                            onChange={function(e) { 
+                              setNewSubcategory({ ...newSubcategory, [mainCatId]: e.target.value }); 
+                            }}
+                            onKeyPress={function(e) {
+                              if (e.key === 'Enter') {
+                                handleAddSubcategory(mainCatId);
+                              }
+                            }}
+                          />
+                        </div>
                         <button 
                           className="add-subcategory-btn"
                           onClick={function() { handleAddSubcategory(mainCatId); }}
+                          disabled={!newSubcategory[mainCatId] || !newSubcategory[mainCatId].trim()}
                         >
                           <PlusIcon />
-                          <span>Add</span>
+                          <span>Add Subcategory</span>
                         </button>
                       </div>
                     </div>
@@ -1325,6 +1643,137 @@ function AdminPanel() {
             })}
           </div>
         </>
+      )}
+
+      {/* Add/Edit Main Category Modal */}
+      {showMainCategoryModal && (
+        <div className="modal-overlay" onClick={function() { setShowMainCategoryModal(false); resetMainCategoryForm(); }}>
+          <div className="modal-content category-modal" onClick={function(e) { e.stopPropagation(); }}>
+            <div className="modal-header">
+              <h2>{editingMainCategory ? 'Edit Main Category' : 'Add New Main Category'}</h2>
+              <button className="modal-close" onClick={function() { setShowMainCategoryModal(false); resetMainCategoryForm(); }}><XIcon /></button>
+            </div>
+            <form className="category-form" onSubmit={handleMainCategorySubmit}>
+              <div className="form-group">
+                <label>Category Name *</label>
+                <input 
+                  type="text" 
+                  value={mainCatFormData.name}
+                  onChange={function(e) { setMainCatFormData({ ...mainCatFormData, name: e.target.value }); }}
+                  placeholder="e.g., Electronics, Home Decor"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Description</label>
+                <input 
+                  type="text" 
+                  value={mainCatFormData.description}
+                  onChange={function(e) { setMainCatFormData({ ...mainCatFormData, description: e.target.value }); }}
+                  placeholder="Brief description of this category"
+                />
+              </div>
+              <div className="form-group">
+                <label>Icon Type</label>
+                <div className="icon-selector">
+                  {['bulb', 'shirt', 'baby', 'grid', 'box', 'star'].map(function(iconType) {
+                    return (
+                      <button
+                        key={iconType}
+                        type="button"
+                        className={'icon-option' + (mainCatFormData.icon === iconType ? ' selected' : '')}
+                        onClick={function() { setMainCatFormData({ ...mainCatFormData, icon: iconType }); }}
+                        style={{ '--icon-color': mainCatFormData.color }}
+                      >
+                        {getMainCategoryIcon(iconType)}
+                        <span>{iconType}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Theme Color</label>
+                <div className="color-selector">
+                  {[
+                    { name: 'Amber', value: '#f59e0b' },
+                    { name: 'Pink', value: '#ec4899' },
+                    { name: 'Purple', value: '#8b5cf6' },
+                    { name: 'Blue', value: '#3b82f6' },
+                    { name: 'Green', value: '#10b981' },
+                    { name: 'Red', value: '#ef4444' },
+                    { name: 'Teal', value: '#14b8a6' },
+                    { name: 'Orange', value: '#f97316' }
+                  ].map(function(color) {
+                    return (
+                      <button
+                        key={color.value}
+                        type="button"
+                        className={'color-option' + (mainCatFormData.color === color.value ? ' selected' : '')}
+                        style={{ background: color.value }}
+                        onClick={function() { setMainCatFormData({ ...mainCatFormData, color: color.value }); }}
+                        title={color.name}
+                      >
+                        {mainCatFormData.color === color.value && <CheckIcon />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Category Image URL (Optional)</label>
+                <input 
+                  type="text" 
+                  value={mainCatFormData.image}
+                  onChange={function(e) { setMainCatFormData({ ...mainCatFormData, image: e.target.value }); }}
+                  placeholder="https://example.com/image.jpg"
+                />
+                {mainCatFormData.image && (
+                  <div className="image-preview small">
+                    <img src={mainCatFormData.image} alt="Preview" onError={function(e) { e.target.style.display = 'none'; }} />
+                  </div>
+                )}
+              </div>
+              <div className="form-actions">
+                <button type="button" className="cancel-btn" onClick={function() { setShowMainCategoryModal(false); resetMainCategoryForm(); }}>Cancel</button>
+                <button type="submit" className="submit-btn">{editingMainCategory ? 'Update Category' : 'Add Category'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Subcategory Modal */}
+      {showSubcategoryModal && (
+        <div className="modal-overlay" onClick={function() { setShowSubcategoryModal(false); }}>
+          <div className="modal-content subcategory-modal" onClick={function(e) { e.stopPropagation(); }}>
+            <div className="modal-header">
+              <h2>Edit Subcategory</h2>
+              <button className="modal-close" onClick={function() { setShowSubcategoryModal(false); }}><XIcon /></button>
+            </div>
+            <form className="category-form" onSubmit={handleSubcategoryEditSubmit}>
+              <div className="form-group">
+                <label>Subcategory Name *</label>
+                <input 
+                  type="text" 
+                  value={editSubcatName}
+                  onChange={function(e) { setEditSubcatName(e.target.value); }}
+                  placeholder="Enter subcategory name"
+                  required
+                />
+              </div>
+              <div className="form-info">
+                <span className="info-label">ID:</span>
+                <span className="info-value">{editSubcatId}</span>
+                <span className="info-note">(ID cannot be changed)</span>
+              </div>
+              <div className="form-actions">
+                <button type="button" className="cancel-btn" onClick={function() { setShowSubcategoryModal(false); }}>Cancel</button>
+                <button type="submit" className="submit-btn">Update Subcategory</button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {/* CATEGORY IMAGES TAB */}
