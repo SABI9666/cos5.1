@@ -305,6 +305,108 @@ var InstagramIcon = function() {
   );
 };
 
+var LightBulbIcon = function() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 18h6"/>
+      <path d="M10 22h4"/>
+      <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>
+    </svg>
+  );
+};
+
+var ShirtIcon = function() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
+    </svg>
+  );
+};
+
+var BabyIcon = function() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 12h.01"/>
+      <path d="M15 12h.01"/>
+      <path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"/>
+      <path d="M19 6.3a9 9 0 0 1 1.8 3.9 2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"/>
+    </svg>
+  );
+};
+
+var GridIcon = function() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7"/>
+      <rect x="14" y="3" width="7" height="7"/>
+      <rect x="14" y="14" width="7" height="7"/>
+      <rect x="3" y="14" width="7" height="7"/>
+    </svg>
+  );
+};
+
+var ChevronDownIcon = function() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  );
+};
+
+var ChevronRightIcon = function() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="9 18 15 12 9 6"/>
+    </svg>
+  );
+};
+
+// Main Category Data Structure
+var MAIN_CATEGORIES = {
+  'led-lights': {
+    id: 'led-lights',
+    name: 'LED Lights',
+    icon: 'bulb',
+    color: '#f59e0b',
+    subcategories: [
+      { id: 'wall-light', name: 'Wall Light' },
+      { id: 'fan', name: 'Fan' },
+      { id: 'hanging', name: 'Hanging' },
+      { id: 'gate-light', name: 'Gate Light' },
+      { id: 'bldc-fan', name: 'BLDC Fan' },
+      { id: 'wall-fan', name: 'Wall Fan' },
+      { id: 'wall-washer', name: 'Wall Washer' },
+      { id: 'bulb', name: 'Bulb' },
+      { id: 'surface-lights', name: 'Surface Lights' },
+      { id: 'street-light', name: 'Street Light' },
+      { id: 'spot-light', name: 'Spot Light' },
+      { id: 'cylinder-light', name: 'Cylinder Light' },
+      { id: 'smps', name: 'SMPS' }
+    ]
+  },
+  'dress': {
+    id: 'dress',
+    name: 'Dress',
+    icon: 'shirt',
+    color: '#ec4899',
+    subcategories: [
+      { id: 'gents-dress', name: 'Gents Dress' },
+      { id: 'ladies-dress', name: 'Ladies Dress' }
+    ]
+  },
+  'kids-items': {
+    id: 'kids-items',
+    name: 'Kids Items',
+    icon: 'baby',
+    color: '#8b5cf6',
+    subcategories: [
+      { id: 'kids-clothing', name: 'Kids Clothing' },
+      { id: 'kids-toys', name: 'Kids Toys' },
+      { id: 'kids-accessories', name: 'Kids Accessories' }
+    ]
+  }
+};
+
 function AdminPanel() {
   var authState = useState(false);
   var isLoggedIn = authState[0];
@@ -346,6 +448,20 @@ function AdminPanel() {
   var categories = categoriesState[0];
   var setCategories = categoriesState[1];
 
+  // Main categories state for dynamic management
+  var mainCategoriesState = useState(MAIN_CATEGORIES);
+  var mainCategories = mainCategoriesState[0];
+  var setMainCategories = mainCategoriesState[1];
+
+  // Category management states
+  var expandedCategoriesState = useState({ 'led-lights': true, 'dress': true, 'kids-items': true });
+  var expandedCategories = expandedCategoriesState[0];
+  var setExpandedCategories = expandedCategoriesState[1];
+
+  var newSubcategoryState = useState({});
+  var newSubcategory = newSubcategoryState[0];
+  var setNewSubcategory = newSubcategoryState[1];
+
   var loadingState = useState(true);
   var loading = loadingState[0];
   var setLoading = loadingState[1];
@@ -362,7 +478,7 @@ function AdminPanel() {
   var editingProduct = editingProductState[0];
   var setEditingProduct = editingProductState[1];
 
-  var formDataState = useState({ name: '', price: '', description: '', category: '', stock: '', image: '' });
+  var formDataState = useState({ name: '', price: '', description: '', mainCategory: '', category: '', stock: '', image: '' });
   var formData = formDataState[0];
   var setFormData = formDataState[1];
 
@@ -398,11 +514,26 @@ function AdminPanel() {
   useEffect(function() {
     var session = sessionStorage.getItem('laxora_admin');
     if (session === 'authenticated') { setIsLoggedIn(true); }
+    
+    // Load saved categories from localStorage
+    var savedCategories = localStorage.getItem('laxora_main_categories');
+    if (savedCategories) {
+      try {
+        setMainCategories(JSON.parse(savedCategories));
+      } catch (e) {
+        console.error('Error parsing saved categories:', e);
+      }
+    }
   }, []);
 
   useEffect(function() {
     if (isLoggedIn) { fetchAllData(); }
   }, [isLoggedIn]);
+
+  // Save categories to localStorage whenever they change
+  useEffect(function() {
+    localStorage.setItem('laxora_main_categories', JSON.stringify(mainCategories));
+  }, [mainCategories]);
 
   var handleLogin = function(e) {
     e.preventDefault();
@@ -534,7 +665,7 @@ function AdminPanel() {
 
   var handleAddProduct = function() {
     setEditingProduct(null);
-    setFormData({ name: '', price: '', description: '', category: '', stock: '', image: '' });
+    setFormData({ name: '', price: '', description: '', mainCategory: '', category: '', stock: '', image: '' });
     setImageFile(null);
     setImagePreview('');
     setIsSaving(false);
@@ -543,10 +674,23 @@ function AdminPanel() {
 
   var handleEditProduct = function(product) {
     setEditingProduct(product);
+    
+    // Determine main category from subcategory
+    var foundMainCategory = '';
+    Object.keys(mainCategories).forEach(function(mainCatId) {
+      var mainCat = mainCategories[mainCatId];
+      mainCat.subcategories.forEach(function(subcat) {
+        if (subcat.id === product.category || subcat.name === product.category) {
+          foundMainCategory = mainCatId;
+        }
+      });
+    });
+    
     setFormData({ 
       name: product.name || '', 
       price: product.price || '', 
       description: product.description || '', 
+      mainCategory: foundMainCategory || product.mainCategory || '',
       category: product.category || '', 
       stock: product.stock || '', 
       image: product.imageUrl || product.image || '' 
@@ -560,18 +704,15 @@ function AdminPanel() {
   var handleImageChange = function(e) {
     var file = e.target.files[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         alert('Please select an image file');
         return;
       }
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         alert('Image size should be less than 5MB');
         return;
       }
       setImageFile(file);
-      // Create preview
       var reader = new FileReader();
       reader.onloadend = function() {
         setImagePreview(reader.result);
@@ -598,137 +739,97 @@ function AdminPanel() {
   var handleFormSubmit = async function(e) {
     e.preventDefault();
     
-    if (isSaving) return;
-    
-    // Validate required fields
-    if (!formData.name || !formData.name.trim()) {
-      alert('Please enter a product name');
-      return;
-    }
-    if (!formData.price || parseFloat(formData.price) <= 0) {
-      alert('Please enter a valid price');
-      return;
-    }
-    if (!formData.category) {
-      alert('Please select a category');
+    if (!formData.name || !formData.price || !formData.category) {
+      alert('Please fill in all required fields');
       return;
     }
     
     setIsSaving(true);
     
     try {
-      var finalImageUrl = formData.image || '';
+      var imageUrl = formData.image;
       
-      // Upload image file if selected
       if (imageFile) {
-        console.log('Uploading image file...');
-        finalImageUrl = await uploadImage(imageFile);
-        console.log('Image uploaded:', finalImageUrl);
+        imageUrl = await uploadImage(imageFile);
       }
       
-      var productData = { 
-        name: formData.name.trim(), 
-        price: parseFloat(formData.price) || 0, 
-        description: formData.description || '', 
-        category: formData.category, 
-        stock: parseInt(formData.stock) || 0, 
-        imageUrl: finalImageUrl
+      var productData = {
+        name: formData.name,
+        price: parseFloat(formData.price),
+        description: formData.description,
+        mainCategory: formData.mainCategory,
+        category: formData.category,
+        stock: parseInt(formData.stock) || 0,
+        quantity: parseInt(formData.stock) || 0,
+        imageUrl: imageUrl
       };
-      
-      console.log('Saving product:', productData);
       
       if (editingProduct) {
         await updateProduct(editingProduct.id, productData);
-        setProducts(products.map(function(p) { 
+        setProducts(products.map(function(p) {
           if (p.id === editingProduct.id) {
             return { ...p, ...productData };
           }
           return p;
         }));
-        console.log('Product updated successfully');
       } else {
         var newId = await addProduct(productData);
-        console.log('Product added with ID:', newId);
-        setProducts(products.concat([{ id: newId, ...productData }]));
+        setProducts([...products, { id: newId, ...productData }]);
       }
+      
       setShowModal(false);
-      setFormData({ name: '', price: '', description: '', category: '', stock: '', image: '' });
       setImageFile(null);
       setImagePreview('');
-      setEditingProduct(null);
-    } catch (error) { 
-      console.error('Error saving product:', error); 
-      alert('Error saving product: ' + (error.message || 'Unknown error'));
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  var handleCategoryImageSave = async function(categoryKey, imageUrl) {
-    if (!imageUrl || !imageUrl.trim()) {
-      alert('Please enter an image URL');
-      return;
-    }
-    try {
-      await updateCategory(categoryKey, { name: categoryKey.split('-').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' '), image: imageUrl.trim() });
-      var updatedCategories = { ...categories, [categoryKey]: imageUrl.trim() };
-      setCategories(updatedCategories);
-      alert('Category image saved successfully!');
-    } catch (error) { 
-      console.error('Error saving category image:', error); 
-      alert('Failed to save category image');
-    }
-  };
-
-  var handleCategoryFileUpload = async function(categoryKey, e) {
-    var file = e.target.files[0];
-    if (!file) return;
-    
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
-      return;
-    }
-    
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Image size should be less than 5MB');
-      return;
-    }
-    
-    try {
-      var imageUrl = await uploadCategoryImage(file);
-      await updateCategory(categoryKey, { name: categoryKey.split('-').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' '), image: imageUrl });
-      var updatedCategories = { ...categories, [categoryKey]: imageUrl };
-      setCategories(updatedCategories);
-      alert('Category image uploaded successfully!');
     } catch (error) {
-      console.error('Error uploading category image:', error);
-      alert('Failed to upload image. Please try again.');
+      console.error('Error saving product:', error);
+      alert('Error saving product. Please try again.');
     }
     
-    // Reset file input
-    e.target.value = '';
-  };
-
-  var handleCategoryImageDelete = async function(categoryKey) {
-    if (!window.confirm('Are you sure you want to remove this category image?')) {
-      return;
-    }
-    
-    try {
-      await updateCategory(categoryKey, { name: categoryKey.split('-').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' '), image: '' });
-      var updatedCategories = { ...categories, [categoryKey]: '' };
-      setCategories(updatedCategories);
-    } catch (error) { 
-      console.error('Error deleting category image:', error); 
-      alert('Failed to delete category image');
-    }
+    setIsSaving(false);
   };
 
   var handleUpdateOrderStatus = async function(orderId, newStatus) {
     try {
       await updateOrderStatusOnly(orderId, newStatus);
-      setOrders(orders.map(function(order) { return order.id === orderId ? { ...order, status: newStatus } : order; }));
-    } catch (error) { console.error('Error updating order status:', error); }
+      setOrders(orders.map(function(order) {
+        if (order.id === orderId) {
+          return { ...order, status: newStatus };
+        }
+        return order;
+      }));
+    } catch (error) {
+      console.error('Error updating order status:', error);
+    }
+  };
+
+  var handleCategoryImageSave = async function(categoryId, imageUrl) {
+    try {
+      await updateCategory(categoryId, { name: categoryId.split('-').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' '), image: imageUrl });
+      setCategories({ ...categories, [categoryId]: imageUrl });
+    } catch (error) {
+      console.error('Error saving category image:', error);
+    }
+  };
+
+  var handleCategoryFileUpload = async function(categoryId, e) {
+    var file = e.target.files[0];
+    if (file) {
+      try {
+        var imageUrl = await uploadCategoryImage(file);
+        await handleCategoryImageSave(categoryId, imageUrl);
+      } catch (error) {
+        console.error('Error uploading category image:', error);
+      }
+    }
+  };
+
+  var handleCategoryImageDelete = async function(categoryId) {
+    try {
+      await updateCategory(categoryId, { name: categoryId.split('-').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' '), image: '' });
+      setCategories({ ...categories, [categoryId]: '' });
+    } catch (error) {
+      console.error('Error deleting category image:', error);
+    }
   };
 
   var handleSaveSocialSettings = async function() {
@@ -738,12 +839,85 @@ function AdminPanel() {
       alert('Social settings saved successfully!');
     } catch (error) {
       console.error('Error saving social settings:', error);
-      alert('Failed to save social settings');
+      alert('Error saving settings. Please try again.');
     }
     setIsSavingSocial(false);
   };
 
-  // Login Page
+  // Category Management Functions
+  var toggleCategoryExpand = function(categoryId) {
+    setExpandedCategories({
+      ...expandedCategories,
+      [categoryId]: !expandedCategories[categoryId]
+    });
+  };
+
+  var handleAddSubcategory = function(mainCategoryId) {
+    var newSubcatName = newSubcategory[mainCategoryId];
+    if (!newSubcatName || !newSubcatName.trim()) {
+      alert('Please enter a subcategory name');
+      return;
+    }
+    
+    var newSubcatId = newSubcatName.toLowerCase().replace(/\s+/g, '-');
+    
+    var updatedCategories = { ...mainCategories };
+    updatedCategories[mainCategoryId].subcategories.push({
+      id: newSubcatId,
+      name: newSubcatName.trim()
+    });
+    
+    setMainCategories(updatedCategories);
+    setNewSubcategory({ ...newSubcategory, [mainCategoryId]: '' });
+  };
+
+  var handleDeleteSubcategory = function(mainCategoryId, subcategoryId) {
+    if (!window.confirm('Are you sure you want to delete this subcategory?')) {
+      return;
+    }
+    
+    var updatedCategories = { ...mainCategories };
+    updatedCategories[mainCategoryId].subcategories = updatedCategories[mainCategoryId].subcategories.filter(function(sub) {
+      return sub.id !== subcategoryId;
+    });
+    
+    setMainCategories(updatedCategories);
+  };
+
+  // Get subcategories for selected main category
+  var getSubcategoriesForMainCategory = function(mainCategoryId) {
+    if (!mainCategoryId || !mainCategories[mainCategoryId]) {
+      return [];
+    }
+    return mainCategories[mainCategoryId].subcategories;
+  };
+
+  // Get all subcategories flat list for category images
+  var getAllSubcategories = function() {
+    var allSubs = [];
+    Object.keys(mainCategories).forEach(function(mainCatId) {
+      mainCategories[mainCatId].subcategories.forEach(function(sub) {
+        allSubs.push({
+          ...sub,
+          mainCategory: mainCatId,
+          mainCategoryName: mainCategories[mainCatId].name
+        });
+      });
+    });
+    return allSubs;
+  };
+
+  // Get main category icon component
+  var getMainCategoryIcon = function(iconType) {
+    switch (iconType) {
+      case 'bulb': return <LightBulbIcon />;
+      case 'shirt': return <ShirtIcon />;
+      case 'baby': return <BabyIcon />;
+      default: return <GridIcon />;
+    }
+  };
+
+  // LOGIN PAGE
   if (!isLoggedIn) {
     return (
       <div className="login-container">
@@ -761,32 +935,29 @@ function AdminPanel() {
               <div className="logo-ring"></div>
               <ShieldIcon />
             </div>
-            <h1>Laxora</h1>
-            <p className="login-tagline">Admin Control Center</p>
+            <h1>Admin Panel</h1>
+            <p className="login-tagline">Laxorashopping Dashboard</p>
           </div>
           <form className="login-form" onSubmit={handleLogin}>
             <div className="login-field">
               <label>Username</label>
               <div className="input-wrapper">
-                <div className="input-icon"><UserIcon /></div>
-                <input type="text" placeholder="Enter username" value={username} onChange={function(e) { setUsername(e.target.value); }} autoComplete="username" />
+                <input type="text" value={username} onChange={function(e) { setUsername(e.target.value); }} placeholder="Enter username" required />
+                <span className="input-icon"><UserIcon /></span>
               </div>
             </div>
             <div className="login-field">
               <label>Password</label>
               <div className="input-wrapper">
-                <div className="input-icon"><LockIcon /></div>
-                <input type={showPassword ? 'text' : 'password'} placeholder="Enter password" value={password} onChange={function(e) { setPassword(e.target.value); }} autoComplete="current-password" />
+                <input type={showPassword ? 'text' : 'password'} value={password} onChange={function(e) { setPassword(e.target.value); }} placeholder="Enter password" required />
+                <span className="input-icon"><LockIcon /></span>
                 <button type="button" className="toggle-password" onClick={function() { setShowPassword(!showPassword); }}>
                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                 </button>
               </div>
             </div>
             {loginError && (<div className="login-error"><AlertIcon /><span>{loginError}</span></div>)}
-            <button type="submit" className="login-btn">
-              <span>Access Dashboard</span>
-              <ArrowRightIcon />
-            </button>
+            <button type="submit" className="login-btn"><span>Access Dashboard</span><ArrowRightIcon /></button>
           </form>
           <div className="login-footer">
             <div className="footer-divider"><span>Secure Access</span></div>
@@ -797,256 +968,174 @@ function AdminPanel() {
     );
   }
 
-  // Main Dashboard
+  // ADMIN DASHBOARD
   return (
     <div className="admin-panel">
+      {/* Header */}
       <header className="admin-header">
         <div className="admin-brand">
-          <div className="brand-icon"><WalletIcon /></div>
+          <div className="brand-icon"><PackageIcon /></div>
           <div className="brand-text">
-            <h1>Laxora</h1>
+            <h1>Laxorashopping</h1>
             <span>Admin Dashboard</span>
           </div>
         </div>
-        <div className="admin-header-actions">
-          <Link to="/" className="header-btn store-btn"><ExternalLinkIcon /><span>View Store</span></Link>
-          <button className="header-btn logout-btn" onClick={handleLogout}><LogOutIcon /><span>Logout</span></button>
+        <div className="header-actions">
+          <Link to="/" className="header-btn view-store"><ExternalLinkIcon /><span>View Store</span></Link>
+          <button className="header-btn logout" onClick={handleLogout}><LogOutIcon /><span>Logout</span></button>
         </div>
       </header>
 
+      {/* Navigation Tabs */}
       <nav className="admin-tabs">
-        <button className={'admin-tab' + (activeTab === 'orders' ? ' active' : '')} onClick={function() { setActiveTab('orders'); }}>
-          <ShoppingBagIcon /><span>Orders</span><span className="tab-badge">{orders.length}</span>
+        <button className={activeTab === 'orders' ? 'admin-tab active' : 'admin-tab'} onClick={function() { setActiveTab('orders'); }}>
+          <ShoppingBagIcon /><span>Orders</span>
+          {orders.length > 0 && <span className="tab-badge">{orders.length}</span>}
         </button>
-        <button className={'admin-tab' + (activeTab === 'products' ? ' active' : '')} onClick={function() { setActiveTab('products'); }}>
+        <button className={activeTab === 'products' ? 'admin-tab active' : 'admin-tab'} onClick={function() { setActiveTab('products'); }}>
           <PackageIcon /><span>Products</span>
         </button>
-        <button className={'admin-tab' + (activeTab === 'customers' ? ' active' : '')} onClick={function() { setActiveTab('customers'); }}>
+        <button className={activeTab === 'customers' ? 'admin-tab active' : 'admin-tab'} onClick={function() { setActiveTab('customers'); }}>
           <UsersIcon /><span>Customers</span>
         </button>
-        <button className={'admin-tab' + (activeTab === 'events' ? ' active' : '')} onClick={function() { setActiveTab('events'); }}>
-          <CalendarIcon /><span>Categories</span>
+        <button className={activeTab === 'categories' ? 'admin-tab active' : 'admin-tab'} onClick={function() { setActiveTab('categories'); }}>
+          <GridIcon /><span>Categories</span>
         </button>
-        <button className={'admin-tab' + (activeTab === 'settings' ? ' active' : '')} onClick={function() { setActiveTab('settings'); }}>
+        <button className={activeTab === 'events' ? 'admin-tab active' : 'admin-tab'} onClick={function() { setActiveTab('events'); }}>
+          <ImageIcon /><span>Category Images</span>
+        </button>
+        <button className={activeTab === 'settings' ? 'admin-tab active' : 'admin-tab'} onClick={function() { setActiveTab('settings'); }}>
           <SettingsIcon /><span>Settings</span>
         </button>
       </nav>
 
-      {loading && (<div className="loading-container"><div className="loading-spinner"></div></div>)}
+      {/* Loading State */}
+      {loading && (
+        <div className="loading-overlay">
+          <div className="loading-spinner"><SpinnerIcon /></div>
+          <p>Loading data...</p>
+        </div>
+      )}
 
-      {/* ORDERS TAB - Professional Order Status Separation */}
+      {/* ORDERS TAB */}
       {!loading && activeTab === 'orders' && (
         <>
-          <div className="tab-header">
-            <div className="tab-title-section">
-              <h2>Order Management</h2>
-              <p className="tab-subtitle">Track payments and order fulfillment</p>
-            </div>
-            <button className="refresh-btn" onClick={fetchAllData}><RefreshIcon /><span>Refresh</span></button>
-          </div>
-
-          {/* Payment & Order Status Dashboard */}
           <div className="orders-dashboard">
-            {/* Payment Status Section */}
-            <div className="dashboard-panel payment-panel">
-              <div className="panel-header">
-                <div className="panel-icon-wrapper payment">
-                  <CreditCardIcon />
-                </div>
-                <div className="panel-title-group">
-                  <h3>Payment Status</h3>
-                  <p>Real-time payment tracking</p>
-                </div>
-              </div>
+            {/* Payment Status Cards */}
+            <div className="dashboard-panel">
+              <h3 className="panel-title"><CreditCardIcon />Payment Status</h3>
               <div className="payment-metrics">
-                <div className={'metric-card completed' + (orderFilter === 'payment-completed' ? ' active' : '')} onClick={function() { handleFilterClick('payment-completed'); }}>
-                  <div className="metric-visual">
-                    <div className="metric-ring">
-                      <svg viewBox="0 0 36 36" className="circular-chart">
-                        <path className="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                        <path className="circle" strokeDasharray={(orders.length > 0 ? (getPaymentCompletedOrders().length / orders.length) * 100 : 0) + ', 100'} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                      </svg>
-                      <div className="metric-icon"><CheckIcon /></div>
-                    </div>
+                <div className={'metric-card success' + (orderFilter === 'payment-completed' ? ' active' : '')} onClick={function() { handleFilterClick('payment-completed'); }}>
+                  <div className="metric-icon"><CheckIcon /></div>
+                  <div className="metric-info">
+                    <span className="metric-value">{getPaymentCompletedOrders().length}</span>
+                    <span className="metric-label">Payment Completed</span>
                   </div>
-                  <div className="metric-data">
-                    <div className="metric-count">{getPaymentCompletedOrders().length}</div>
-                    <div className="metric-label">Payment Received</div>
-                    <div className="metric-amount">{formatCurrency(getOrderTotal(getPaymentCompletedOrders()))}</div>
-                  </div>
-                  <div className="metric-badge success">Completed</div>
+                  <span className="metric-badge">{formatCurrency(getOrderTotal(getPaymentCompletedOrders()))}</span>
                 </div>
-
-                <div className={'metric-card pending' + (orderFilter === 'payment-pending' ? ' active' : '')} onClick={function() { handleFilterClick('payment-pending'); }}>
-                  <div className="metric-visual">
-                    <div className="metric-ring pending">
-                      <svg viewBox="0 0 36 36" className="circular-chart">
-                        <path className="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                        <path className="circle" strokeDasharray={(orders.length > 0 ? (getPaymentPendingOrders().length / orders.length) * 100 : 0) + ', 100'} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                      </svg>
-                      <div className="metric-icon"><ClockIcon /></div>
-                    </div>
+                <div className={'metric-card warning' + (orderFilter === 'payment-pending' ? ' active' : '')} onClick={function() { handleFilterClick('payment-pending'); }}>
+                  <div className="metric-icon"><ClockIcon /></div>
+                  <div className="metric-info">
+                    <span className="metric-value">{getPaymentPendingOrders().length}</span>
+                    <span className="metric-label">Payment Pending</span>
                   </div>
-                  <div className="metric-data">
-                    <div className="metric-count">{getPaymentPendingOrders().length}</div>
-                    <div className="metric-label">Awaiting Payment</div>
-                    <div className="metric-amount">{formatCurrency(getOrderTotal(getPaymentPendingOrders()))}</div>
-                  </div>
-                  <div className="metric-badge warning">Pending</div>
+                  <span className="metric-badge">{formatCurrency(getOrderTotal(getPaymentPendingOrders()))}</span>
                 </div>
               </div>
             </div>
 
-            {/* Order Lifecycle Section */}
-            <div className="dashboard-panel lifecycle-panel">
-              <div className="panel-header">
-                <div className="panel-icon-wrapper lifecycle">
-                  <BoxIcon />
+            {/* Order Pipeline */}
+            <div className="dashboard-panel">
+              <h3 className="panel-title"><TruckIcon />Order Pipeline</h3>
+              <div className="pipeline-track">
+                <div className={'pipeline-stage' + (orderFilter === 'new-pending' ? ' active' : '')} onClick={function() { handleFilterClick('new-pending'); }}>
+                  <div className="stage-node new"><BoxIcon /></div>
+                  <span className="stage-label">New</span>
+                  <span className="stage-count">{getNewPendingOrders().length}</span>
                 </div>
-                <div className="panel-title-group">
-                  <h3>Order Lifecycle</h3>
-                  <p>Track order progress through stages</p>
+                <div className="pipeline-connector"></div>
+                <div className={'pipeline-stage' + (orderFilter === 'processing' ? ' active' : '')} onClick={function() { handleFilterClick('processing'); }}>
+                  <div className="stage-node processing"><SpinnerIcon /></div>
+                  <span className="stage-label">Processing</span>
+                  <span className="stage-count">{getProcessingOrders().length}</span>
+                </div>
+                <div className="pipeline-connector"></div>
+                <div className={'pipeline-stage' + (orderFilter === 'shipped' ? ' active' : '')} onClick={function() { handleFilterClick('shipped'); }}>
+                  <div className="stage-node shipped"><TruckIcon /></div>
+                  <span className="stage-label">Shipped</span>
+                  <span className="stage-count">{getShippedOrders().length}</span>
+                </div>
+                <div className="pipeline-connector"></div>
+                <div className={'pipeline-stage' + (orderFilter === 'delivered' ? ' active' : '')} onClick={function() { handleFilterClick('delivered'); }}>
+                  <div className="stage-node delivered"><CheckIcon /></div>
+                  <span className="stage-label">Delivered</span>
+                  <span className="stage-count">{getDeliveredOrders().length}</span>
                 </div>
               </div>
-              <div className="lifecycle-pipeline">
-                <div className="pipeline-track">
-                  <div className={'pipeline-stage new' + (orderFilter === 'new-pending' ? ' active' : '')} onClick={function() { handleFilterClick('new-pending'); }}>
-                    <div className="stage-node">
-                      <div className="node-icon"><PlusIcon /></div>
-                      <div className="node-count">{getNewPendingOrders().length}</div>
-                    </div>
-                    <div className="stage-label">New Orders</div>
-                  </div>
-                  <div className="pipeline-connector"></div>
-                  <div className={'pipeline-stage processing' + (orderFilter === 'processing' ? ' active' : '')} onClick={function() { handleFilterClick('processing'); }}>
-                    <div className="stage-node">
-                      <div className="node-icon"><SpinnerIcon /></div>
-                      <div className="node-count">{getProcessingOrders().length}</div>
-                    </div>
-                    <div className="stage-label">Processing</div>
-                  </div>
-                  <div className="pipeline-connector"></div>
-                  <div className={'pipeline-stage shipped' + (orderFilter === 'shipped' ? ' active' : '')} onClick={function() { handleFilterClick('shipped'); }}>
-                    <div className="stage-node">
-                      <div className="node-icon"><TruckIcon /></div>
-                      <div className="node-count">{getShippedOrders().length}</div>
-                    </div>
-                    <div className="stage-label">Shipped</div>
-                  </div>
-                  <div className="pipeline-connector"></div>
-                  <div className={'pipeline-stage delivered' + (orderFilter === 'delivered' ? ' active' : '')} onClick={function() { handleFilterClick('delivered'); }}>
-                    <div className="stage-node">
-                      <div className="node-icon"><CheckIcon /></div>
-                      <div className="node-count">{getDeliveredOrders().length}</div>
-                    </div>
-                    <div className="stage-label">Delivered</div>
-                  </div>
-                </div>
-                <div className="pipeline-cancelled">
-                  <div className={'pipeline-stage cancelled' + (orderFilter === 'cancelled' ? ' active' : '')} onClick={function() { handleFilterClick('cancelled'); }}>
-                    <div className="stage-node">
-                      <div className="node-icon"><XIcon /></div>
-                      <div className="node-count">{getCancelledOrders().length}</div>
-                    </div>
-                    <div className="stage-label">Cancelled</div>
-                  </div>
+              <div className="pipeline-cancelled">
+                <div className={'pipeline-stage cancelled' + (orderFilter === 'cancelled' ? ' active' : '')} onClick={function() { handleFilterClick('cancelled'); }}>
+                  <div className="stage-node cancelled"><XIcon /></div>
+                  <span className="stage-label">Cancelled</span>
+                  <span className="stage-count">{getCancelledOrders().length}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Active Filter Indicator */}
+          {/* Active Filter Bar */}
           {orderFilter !== 'all' && (
             <div className="active-filter-bar">
-              <div className="filter-info">
-                <FilterIcon />
-                <span className="filter-text">
-                  Showing <strong>{orderFilter.replace('-', ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); })}</strong>
-                </span>
-                <span className="filter-count">{getFilteredOrders().length} orders</span>
-              </div>
-              <button className="clear-filter-btn" onClick={function() { setOrderFilter('all'); }}>
-                <XIcon />
-                <span>Clear Filter</span>
-              </button>
+              <FilterIcon />
+              <span>Filtered by: <strong>{orderFilter.replace('-', ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); })}</strong></span>
+              <button onClick={function() { setOrderFilter('all'); }}>Clear Filter</button>
             </div>
           )}
 
           {/* Orders List */}
           <div className="orders-section">
-            <div className="section-header-bar">
-              <div className="section-title">
-                <ReceiptIcon />
-                <h3>Order Details</h3>
-              </div>
-              <div className="section-stats">
-                <span className="stat-item">{getFilteredOrders().length} orders</span>
-                <span className="stat-divider">•</span>
-                <span className="stat-item">{formatCurrency(getOrderTotal(getFilteredOrders()))}</span>
-              </div>
+            <div className="section-header">
+              <h3>
+                {orderFilter === 'all' ? 'All Orders' : orderFilter.replace('-', ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); })}
+                <span className="order-count">({getFilteredOrders().length})</span>
+              </h3>
+              <button className="refresh-btn" onClick={fetchAllData}><RefreshIcon /><span>Refresh</span></button>
             </div>
-
             <div className="orders-grid">
               {getFilteredOrders().length === 0 ? (
                 <div className="empty-state">
-                  <div className="empty-icon"><ShoppingBagIcon /></div>
-                  <h3>No Orders Found</h3>
-                  <p>No orders match the current filter criteria.</p>
+                  <ReceiptIcon />
+                  <p>No orders found</p>
                 </div>
               ) : (
                 getFilteredOrders().map(function(order) {
-                  var isPaid = order.paymentStatus === 'paid' || order.paymentStatus === 'completed';
                   var orderStatus = order.status || 'pending';
                   return (
-                    <div key={order.id} className={'order-card ' + orderStatus + (isPaid ? ' paid' : ' unpaid')}>
-                      <div className="order-card-header">
-                        <div className="order-header-left">
-                          <div className="order-id">#{order.orderId || order.id.slice(-8).toUpperCase()}</div>
-                          <div className="order-date">{formatDate(order.createdAt)}</div>
+                    <div key={order.id} className="order-card">
+                      <div className="order-header">
+                        <div className="order-id">
+                          <span className="order-number">#{order.id.slice(-8).toUpperCase()}</span>
+                          <span className="order-date">{formatDate(order.createdAt)}</span>
                         </div>
-                        <div className="order-header-right">
-                          <div className={'payment-tag' + (isPaid ? ' paid' : ' pending')}>
-                            {isPaid ? <CheckIcon /> : <ClockIcon />}
-                            <span>{isPaid ? 'Paid' : 'Pending'}</span>
-                          </div>
-                          <div className={'order-status-badge ' + orderStatus}>
-                            {orderStatus === 'pending' || orderStatus === 'new' ? 'New' : orderStatus.charAt(0).toUpperCase() + orderStatus.slice(1)}
-                          </div>
+                        <div className="order-badges">
+                          <span className={'status-badge ' + orderStatus}>{orderStatus}</span>
+                          <span className={'payment-badge ' + (order.paymentStatus === 'paid' ? 'paid' : 'pending')}>{order.paymentStatus || 'pending'}</span>
                         </div>
                       </div>
-                      <div className="order-card-body">
+                      <div className="order-body">
                         <div className="order-info-grid">
-                          <div className="order-info-item">
-                            <span className="info-label">Customer</span>
-                            <span className="info-value">{order.customerName || order.shippingDetails?.name || 'N/A'}</span>
-                          </div>
-                          <div className="order-info-item">
-                            <span className="info-label">Phone</span>
-                            <span className="info-value">{order.phone || order.shippingDetails?.phone || 'N/A'}</span>
-                          </div>
-                          <div className="order-info-item">
-                            <span className="info-label">Amount</span>
-                            <span className="info-value amount">{formatCurrency(order.totalAmount || order.total || order.amount)}</span>
-                          </div>
-                          <div className="order-info-item">
-                            <span className="info-label">Items</span>
-                            <span className="info-value">{order.items?.length || 0} items</span>
-                          </div>
+                          <div className="info-item"><span className="info-label">Customer</span><span className="info-value">{order.customerName}</span></div>
+                          <div className="info-item"><span className="info-label">Email</span><span className="info-value">{order.email}</span></div>
+                          <div className="info-item"><span className="info-label">Phone</span><span className="info-value">{order.phone}</span></div>
+                          <div className="info-item"><span className="info-label">Address</span><span className="info-value address">{order.address}</span></div>
                         </div>
-                        {isPaid && order.transactionId && (
-                          <div className="transaction-info">
-                            <span className="txn-label">Transaction ID:</span>
-                            <span className="txn-value">{order.transactionId}</span>
-                          </div>
-                        )}
-                        <div className="order-address">
-                          <span className="address-label">Shipping:</span>
-                          <span className="address-value">
-                            {order.shippingDetails?.address || order.address || 'N/A'}, {order.shippingDetails?.city || ''} {order.shippingDetails?.state || ''} - {order.shippingDetails?.pincode || ''}
-                          </span>
+                        <div className="order-items">
+                          <span className="items-label">Items:</span>
+                          <span className="items-value">{order.items}</span>
                         </div>
-                      </div>
-                      <div className="order-card-footer">
+                        <div className="order-total">
+                          <span>Total Amount</span>
+                          <span className="total-value">{formatCurrency(order.totalAmount)}</span>
+                        </div>
                         <div className="status-update">
                           <span className="update-label">Update Status:</span>
                           <select className="status-select" value={orderStatus} onChange={function(e) { handleUpdateOrderStatus(order.id, e.target.value); }}>
@@ -1093,7 +1182,10 @@ function AdminPanel() {
                     <div className="product-thumb">{(product.imageUrl || product.image) ? (<img src={product.imageUrl || product.image} alt={product.name} />) : (<ImageIcon />)}</div>
                   </div>
                   <div className="table-cell" data-label="Name"><span className="product-name">{product.name}</span></div>
-                  <div className="table-cell" data-label="Category"><span className="category-badge">{product.category || 'Uncategorized'}</span></div>
+                  <div className="table-cell" data-label="Category">
+                    <span className="category-badge">{product.category || 'Uncategorized'}</span>
+                    {product.mainCategory && <span className="main-category-tag">{mainCategories[product.mainCategory]?.name || product.mainCategory}</span>}
+                  </div>
                   <div className="table-cell" data-label="Price"><span className="price">{formatCurrency(product.price)}</span></div>
                   <div className="table-cell" data-label="Stock"><span className={'stock-badge' + (product.stock > 10 ? ' in-stock' : product.stock > 0 ? ' low-stock' : ' out-stock')}>{product.stock || 0}</span></div>
                   <div className="table-cell actions">
@@ -1152,7 +1244,90 @@ function AdminPanel() {
         </>
       )}
 
-      {/* CATEGORIES TAB */}
+      {/* CATEGORIES TAB - New Hierarchical Category Management */}
+      {!loading && activeTab === 'categories' && (
+        <>
+          <div className="tab-header">
+            <div className="tab-title-section">
+              <h2>Category Management</h2>
+              <p className="tab-subtitle">Manage main categories and subcategories</p>
+            </div>
+            <button className="refresh-btn" onClick={fetchAllData}><RefreshIcon /><span>Refresh</span></button>
+          </div>
+          
+          <div className="categories-hierarchy-container">
+            {Object.keys(mainCategories).map(function(mainCatId) {
+              var mainCat = mainCategories[mainCatId];
+              var isExpanded = expandedCategories[mainCatId];
+              
+              return (
+                <div key={mainCatId} className="main-category-card" style={{ '--category-color': mainCat.color }}>
+                  <div className="main-category-header" onClick={function() { toggleCategoryExpand(mainCatId); }}>
+                    <div className="main-category-info">
+                      <div className="main-category-icon" style={{ background: mainCat.color }}>
+                        {getMainCategoryIcon(mainCat.icon)}
+                      </div>
+                      <div className="main-category-details">
+                        <h3>{mainCat.name}</h3>
+                        <span className="subcategory-count">{mainCat.subcategories.length} subcategories</span>
+                      </div>
+                    </div>
+                    <button className="expand-btn">
+                      {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
+                    </button>
+                  </div>
+                  
+                  {isExpanded && (
+                    <div className="subcategories-section">
+                      <div className="subcategories-list">
+                        {mainCat.subcategories.map(function(subcat) {
+                          return (
+                            <div key={subcat.id} className="subcategory-item">
+                              <span className="subcategory-name">{subcat.name}</span>
+                              <span className="subcategory-id">{subcat.id}</span>
+                              <button 
+                                className="subcategory-delete-btn"
+                                onClick={function() { handleDeleteSubcategory(mainCatId, subcat.id); }}
+                              >
+                                <TrashIcon />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      
+                      <div className="add-subcategory-form">
+                        <input 
+                          type="text" 
+                          placeholder="New subcategory name..."
+                          value={newSubcategory[mainCatId] || ''}
+                          onChange={function(e) { 
+                            setNewSubcategory({ ...newSubcategory, [mainCatId]: e.target.value }); 
+                          }}
+                          onKeyPress={function(e) {
+                            if (e.key === 'Enter') {
+                              handleAddSubcategory(mainCatId);
+                            }
+                          }}
+                        />
+                        <button 
+                          className="add-subcategory-btn"
+                          onClick={function() { handleAddSubcategory(mainCatId); }}
+                        >
+                          <PlusIcon />
+                          <span>Add</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {/* CATEGORY IMAGES TAB */}
       {!loading && activeTab === 'events' && (
         <>
           <div className="tab-header">
@@ -1163,19 +1338,21 @@ function AdminPanel() {
             <button className="refresh-btn" onClick={fetchAllData}><RefreshIcon /><span>Refresh</span></button>
           </div>
           <div className="categories-management">
-            {['wall-light', 'fan', 'hanging', 'gate-light', 'bldc-fan', 'wall-fan', 'wall-washer', 'bulb', 'surface-lights', 'street-light', 'spot-light', 'cylinder-light', 'smps'].map(function(categoryId) {
-              var categoryName = categoryId.split('-').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ');
-              var hasImage = categories[categoryId] && categories[categoryId].length > 0;
+            {getAllSubcategories().map(function(subcat) {
+              var hasImage = categories[subcat.id] && categories[subcat.id].length > 0;
               
               return (
-                <div key={categoryId} className="category-card">
+                <div key={subcat.id} className="category-card">
                   <div className="category-header">
-                    <h3>{categoryName}</h3>
+                    <div>
+                      <h3>{subcat.name}</h3>
+                      <span className="category-parent-tag">{subcat.mainCategoryName}</span>
+                    </div>
                     {hasImage && (
                       <button 
                         type="button" 
                         className="category-delete-btn" 
-                        onClick={function() { handleCategoryImageDelete(categoryId); }}
+                        onClick={function() { handleCategoryImageDelete(subcat.id); }}
                         title="Remove image"
                       >
                         <TrashIcon />
@@ -1184,7 +1361,7 @@ function AdminPanel() {
                   </div>
                   <div className="category-preview">
                     {hasImage ? (
-                      <img src={categories[categoryId]} alt={categoryName} className="category-image" />
+                      <img src={categories[subcat.id]} alt={subcat.name} className="category-image" />
                     ) : (
                       <div className="category-placeholder">
                         <ImageIcon />
@@ -1196,19 +1373,19 @@ function AdminPanel() {
                     <div className="category-upload-row">
                       <input 
                         type="file" 
-                        id={'category-upload-' + categoryId}
+                        id={'category-upload-' + subcat.id}
                         accept="image/*" 
                         style={{ display: 'none' }}
-                        onChange={function(e) { handleCategoryFileUpload(categoryId, e); }}
+                        onChange={function(e) { handleCategoryFileUpload(subcat.id, e); }}
                       />
-                      <label htmlFor={'category-upload-' + categoryId} className="category-upload-btn">
+                      <label htmlFor={'category-upload-' + subcat.id} className="category-upload-btn">
                         <UploadIcon />
                         <span>Upload</span>
                       </label>
                       <span className="category-or">or</span>
                       <input 
                         type="text" 
-                        id={'category-url-' + categoryId}
+                        id={'category-url-' + subcat.id}
                         placeholder="Paste URL" 
                         className="category-url-input"
                       />
@@ -1216,9 +1393,9 @@ function AdminPanel() {
                         type="button" 
                         className="category-save-btn"
                         onClick={function() { 
-                          var urlInput = document.getElementById('category-url-' + categoryId);
+                          var urlInput = document.getElementById('category-url-' + subcat.id);
                           if (urlInput && urlInput.value.trim()) {
-                            handleCategoryImageSave(categoryId, urlInput.value.trim()); 
+                            handleCategoryImageSave(subcat.id, urlInput.value.trim()); 
                             urlInput.value = ''; 
                           }
                         }}
@@ -1281,7 +1458,7 @@ function AdminPanel() {
                       placeholder="Enter Instagram username or full URL"
                       className="settings-input"
                     />
-                    <span className="settings-hint">Just username (e.g., laxora_lights) or full URL</span>
+                    <span className="settings-hint">Just username (e.g., laxorashopping) or full URL</span>
                   </div>
                 </div>
                 
@@ -1350,25 +1527,48 @@ function AdminPanel() {
                   <input type="number" value={formData.stock || ''} onChange={function(e) { setFormData({ ...formData, stock: e.target.value }); }} placeholder="0" min="0" />
                 </div>
               </div>
+              
+              {/* Main Category Selection */}
               <div className="form-group">
-                <label>Category *</label>
-                <select value={formData.category || ''} onChange={function(e) { setFormData({ ...formData, category: e.target.value }); }}>
-                  <option value="">Select Category</option>
-                  <option value="wall-light">Wall Light</option>
-                  <option value="fan">Fan</option>
-                  <option value="hanging">Hanging</option>
-                  <option value="gate-light">Gate Light</option>
-                  <option value="bldc-fan">BLDC Fan</option>
-                  <option value="wall-fan">Wall Fan</option>
-                  <option value="wall-washer">Wall Washer</option>
-                  <option value="bulb">Bulb</option>
-                  <option value="surface-lights">Surface Lights</option>
-                  <option value="street-light">Street Light</option>
-                  <option value="spot-light">Spot Light</option>
-                  <option value="cylinder-light">Cylinder Light</option>
-                  <option value="smps">SMPS</option>
+                <label>Main Category *</label>
+                <select 
+                  value={formData.mainCategory || ''} 
+                  onChange={function(e) { 
+                    setFormData({ ...formData, mainCategory: e.target.value, category: '' }); 
+                  }}
+                  className="category-select main-category-select"
+                >
+                  <option value="">Select Main Category</option>
+                  {Object.keys(mainCategories).map(function(mainCatId) {
+                    var mainCat = mainCategories[mainCatId];
+                    return (
+                      <option key={mainCatId} value={mainCatId}>{mainCat.name}</option>
+                    );
+                  })}
                 </select>
               </div>
+              
+              {/* Subcategory Selection */}
+              <div className="form-group">
+                <label>Subcategory *</label>
+                <select 
+                  value={formData.category || ''} 
+                  onChange={function(e) { setFormData({ ...formData, category: e.target.value }); }}
+                  disabled={!formData.mainCategory}
+                  className="category-select"
+                >
+                  <option value="">Select Subcategory</option>
+                  {getSubcategoriesForMainCategory(formData.mainCategory).map(function(subcat) {
+                    return (
+                      <option key={subcat.id} value={subcat.id}>{subcat.name}</option>
+                    );
+                  })}
+                </select>
+                {!formData.mainCategory && (
+                  <span className="form-hint">Please select a main category first</span>
+                )}
+              </div>
+              
               <div className="form-group">
                 <label>Description</label>
                 <textarea value={formData.description || ''} onChange={function(e) { setFormData({ ...formData, description: e.target.value }); }} placeholder="Enter product description" rows="3" />
