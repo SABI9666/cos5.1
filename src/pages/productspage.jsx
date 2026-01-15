@@ -5,12 +5,60 @@ import Footer from '../components/footer.jsx';
 import { getProducts, getCategories } from '../services/api';
 import './productspage.css';
 
+// Main Categories Data Structure - Same as homepage and admin
+var DEFAULT_MAIN_CATEGORIES = {
+  'led-lights': {
+    id: 'led-lights',
+    name: 'LED Lights',
+    description: 'Premium lighting solutions for every space',
+    icon: 'bulb',
+    color: '#f59e0b',
+    subcategories: [
+      { id: 'wall-light', name: 'Wall Light' },
+      { id: 'fan', name: 'Fan' },
+      { id: 'hanging', name: 'Hanging' },
+      { id: 'gate-light', name: 'Gate Light' },
+      { id: 'bldc-fan', name: 'BLDC Fan' },
+      { id: 'wall-fan', name: 'Wall Fan' },
+      { id: 'wall-washer', name: 'Wall Washer' },
+      { id: 'bulb', name: 'Bulb' },
+      { id: 'surface-lights', name: 'Surface Lights' },
+      { id: 'street-light', name: 'Street Light' },
+      { id: 'spot-light', name: 'Spot Light' },
+      { id: 'cylinder-light', name: 'Cylinder Light' },
+      { id: 'smps', name: 'SMPS' }
+    ]
+  },
+  'dress': {
+    id: 'dress',
+    name: 'Dress',
+    description: 'Stylish clothing for all occasions',
+    icon: 'shirt',
+    color: '#ec4899',
+    subcategories: [
+      { id: 'gents-dress', name: 'Gents Dress' },
+      { id: 'ladies-dress', name: 'Ladies Dress' }
+    ]
+  },
+  'kids-items': {
+    id: 'kids-items',
+    name: 'Kids Items',
+    description: 'Everything for your little ones',
+    icon: 'baby',
+    color: '#8b5cf6',
+    subcategories: [
+      { id: 'kids-clothing', name: 'Kids Clothing' },
+      { id: 'kids-toys', name: 'Kids Toys' },
+      { id: 'kids-accessories', name: 'Kids Accessories' }
+    ]
+  }
+};
+
 function ProductsPage(props) {
   var addToCart = props.addToCart;
   var onCartClick = props.onCartClick;
   var cartCount = props.cartCount;
 
-  // Get URL search params
   var searchParamsResult = useSearchParams();
   var searchParams = searchParamsResult[0];
   var setSearchParams = searchParamsResult[1];
@@ -23,14 +71,21 @@ function ProductsPage(props) {
   var loading = loadingState[0];
   var setLoading = loadingState[1];
 
-  // Categories from Firebase
   var categoriesDataState = useState([]);
   var categoriesData = categoriesDataState[0];
   var setCategoriesData = categoriesDataState[1];
 
-  var categoryState = useState('All');
-  var selectedCategory = categoryState[0];
-  var setSelectedCategory = categoryState[1];
+  var mainCategoriesState = useState(DEFAULT_MAIN_CATEGORIES);
+  var mainCategories = mainCategoriesState[0];
+  var setMainCategories = mainCategoriesState[1];
+
+  var selectedMainCatState = useState(null);
+  var selectedMainCat = selectedMainCatState[0];
+  var setSelectedMainCat = selectedMainCatState[1];
+
+  var selectedSubcatState = useState(null);
+  var selectedSubcat = selectedSubcatState[0];
+  var setSelectedSubcat = selectedSubcatState[1];
 
   var sortState = useState('default');
   var sortBy = sortState[0];
@@ -44,38 +99,72 @@ function ProductsPage(props) {
   var showMobileFilter = mobileFilterState[0];
   var setShowMobileFilter = mobileFilterState[1];
 
-  // Load products and categories
   useEffect(function() {
     loadProducts();
     loadCategoriesData();
+    loadSavedCategories();
   }, []);
 
-  // Handle URL query parameter for category
   useEffect(function() {
+    var mainCategoryParam = searchParams.get('mainCategory');
     var categoryParam = searchParams.get('category');
-    if (categoryParam && categoriesData.length > 0) {
-      // Find category by ID or name (case-insensitive)
-      var foundCategory = categoriesData.find(function(cat) {
-        return cat.id === categoryParam || 
-               cat.id.toLowerCase() === categoryParam.toLowerCase() ||
-               cat.name.toLowerCase() === categoryParam.toLowerCase();
+    
+    if (mainCategoryParam && mainCategories[mainCategoryParam]) {
+      setSelectedMainCat(mainCategoryParam);
+      if (categoryParam) {
+        setSelectedSubcat(categoryParam);
+      } else {
+        setSelectedSubcat(null);
+      }
+    } else if (categoryParam) {
+      var foundMainCat = null;
+      var foundSubcat = categoryParam;
+      
+      Object.keys(mainCategories).forEach(function(mainCatId) {
+        var mainCat = mainCategories[mainCatId];
+        var subcat = mainCat.subcategories.find(function(sub) {
+          return sub.id === categoryParam || 
+                 sub.id.toLowerCase() === categoryParam.toLowerCase() ||
+                 sub.name.toLowerCase() === categoryParam.toLowerCase();
+        });
+        if (subcat) {
+          foundMainCat = mainCatId;
+          foundSubcat = subcat.id;
+        }
       });
       
-      if (foundCategory) {
-        setSelectedCategory(foundCategory.name);
+      if (foundMainCat) {
+        setSelectedMainCat(foundMainCat);
+        setSelectedSubcat(foundSubcat);
       } else {
-        // Try direct match with product categories
-        var productCategory = products.find(function(p) {
-          return p.category && p.category.toLowerCase() === categoryParam.toLowerCase();
-        });
-        if (productCategory) {
-          setSelectedCategory(productCategory.category);
-        }
+        setSelectedMainCat(null);
+        setSelectedSubcat(categoryParam);
       }
-    } else if (!categoryParam) {
-      setSelectedCategory('All');
+    } else {
+      setSelectedMainCat(null);
+      setSelectedSubcat(null);
     }
-  }, [searchParams, categoriesData, products]);
+  }, [searchParams, mainCategories]);
+
+  function loadSavedCategories() {
+    var savedCategories = localStorage.getItem('laxora_main_categories');
+    if (savedCategories) {
+      try {
+        var parsed = JSON.parse(savedCategories);
+        var merged = { ...DEFAULT_MAIN_CATEGORIES };
+        Object.keys(parsed).forEach(function(key) {
+          if (merged[key]) {
+            merged[key].subcategories = parsed[key].subcategories;
+          } else {
+            merged[key] = parsed[key];
+          }
+        });
+        setMainCategories(merged);
+      } catch (e) {
+        console.error('Error parsing saved categories:', e);
+      }
+    }
+  }
 
   function loadProducts() {
     setLoading(true);
@@ -102,86 +191,34 @@ function ProductsPage(props) {
       });
   }
 
-  // Build categories list from both Firebase categories and actual product categories
-  var categories = ['All'];
-  
-  // First add categories from Firebase
-  categoriesData.forEach(function(cat) {
-    if (cat.name && categories.indexOf(cat.name) === -1) {
-      categories.push(cat.name);
-    }
-  });
-  
-  // Then add any product categories that might not be in Firebase
-  products.forEach(function(product) {
-    if (product.category && categories.indexOf(product.category) === -1) {
-      categories.push(product.category);
-    }
-  });
-
-  // Get category count - check both exact match and ID match
-  function getCategoryCount(categoryName) {
-    if (categoryName === 'All') return products.length;
-    
-    // Find the category data to get the ID
-    var catData = categoriesData.find(function(c) {
-      return c.name === categoryName;
+  function getSubcategoryIds(mainCatId) {
+    if (!mainCatId || !mainCategories[mainCatId]) return [];
+    return mainCategories[mainCatId].subcategories.map(function(sub) {
+      return sub.id.toLowerCase();
     });
-    
-    return products.filter(function(p) {
-      if (!p.category) return false;
-      
-      // Check for exact name match (case-insensitive)
-      if (p.category.toLowerCase() === categoryName.toLowerCase()) {
-        return true;
-      }
-      
-      // Check if product category matches category ID
-      if (catData && p.category.toLowerCase() === catData.id.toLowerCase()) {
-        return true;
-      }
-      
-      // Check if product category matches without hyphens/spaces
-      var normalizedProductCat = p.category.toLowerCase().replace(/[-\s]/g, '');
-      var normalizedCategoryName = categoryName.toLowerCase().replace(/[-\s]/g, '');
-      if (normalizedProductCat === normalizedCategoryName) {
-        return true;
-      }
-      
-      return false;
-    }).length;
   }
 
-  // Filter products - match by category name or category ID
+  function productMatchesSubcategory(product, subcatId) {
+    if (!product.category) return false;
+    var productCat = product.category.toLowerCase().replace(/[-\s]/g, '');
+    var subcatNormalized = subcatId.toLowerCase().replace(/[-\s]/g, '');
+    return productCat === subcatNormalized ||
+           product.category.toLowerCase() === subcatId.toLowerCase() ||
+           product.category.toLowerCase().replace(/\s+/g, '-') === subcatId.toLowerCase();
+  }
+
   var filteredProducts = products.filter(function(product) {
     var matchesCategory = false;
     
-    if (selectedCategory === 'All') {
+    if (!selectedMainCat && !selectedSubcat) {
       matchesCategory = true;
-    } else {
-      // Find the category data to get the ID
-      var catData = categoriesData.find(function(c) {
-        return c.name === selectedCategory;
+    } else if (selectedMainCat && !selectedSubcat) {
+      var subcatIds = getSubcategoryIds(selectedMainCat);
+      matchesCategory = subcatIds.some(function(subcatId) {
+        return productMatchesSubcategory(product, subcatId);
       });
-      
-      if (product.category) {
-        // Check for exact name match (case-insensitive)
-        if (product.category.toLowerCase() === selectedCategory.toLowerCase()) {
-          matchesCategory = true;
-        }
-        // Check if product category matches category ID
-        else if (catData && product.category.toLowerCase() === catData.id.toLowerCase()) {
-          matchesCategory = true;
-        }
-        // Check normalized match (without hyphens/spaces)
-        else {
-          var normalizedProductCat = product.category.toLowerCase().replace(/[-\s]/g, '');
-          var normalizedSelectedCat = selectedCategory.toLowerCase().replace(/[-\s]/g, '');
-          if (normalizedProductCat === normalizedSelectedCat) {
-            matchesCategory = true;
-          }
-        }
-      }
+    } else if (selectedSubcat) {
+      matchesCategory = productMatchesSubcategory(product, selectedSubcat);
     }
     
     var matchesSearch = !searchQuery || 
@@ -191,7 +228,6 @@ function ProductsPage(props) {
     return matchesCategory && matchesSearch;
   });
 
-  // Sort products
   if (sortBy === 'price-low') {
     filteredProducts.sort(function(a, b) { return a.price - b.price; });
   } else if (sortBy === 'price-high') {
@@ -200,29 +236,44 @@ function ProductsPage(props) {
     filteredProducts.sort(function(a, b) { return a.name.localeCompare(b.name); });
   }
 
-  function handleCategoryClick(category) {
-    setSelectedCategory(category);
+  function getSubcategoryCount(subcatId) {
+    return products.filter(function(p) {
+      return productMatchesSubcategory(p, subcatId);
+    }).length;
+  }
+
+  function handleMainCategoryClick(mainCatId) {
+    setSelectedMainCat(mainCatId);
+    setSelectedSubcat(null);
     setShowMobileFilter(false);
     
-    // Update URL parameter
-    if (category === 'All') {
+    if (mainCatId) {
+      searchParams.set('mainCategory', mainCatId);
       searchParams.delete('category');
     } else {
-      // Find category ID for URL
-      var catData = categoriesData.find(function(c) {
-        return c.name === category;
-      });
-      if (catData) {
-        searchParams.set('category', catData.id);
-      } else {
-        searchParams.set('category', category.toLowerCase().replace(/\s+/g, '-'));
+      searchParams.delete('mainCategory');
+      searchParams.delete('category');
+    }
+    setSearchParams(searchParams);
+  }
+
+  function handleSubcategoryClick(subcatId) {
+    setSelectedSubcat(subcatId);
+    setShowMobileFilter(false);
+    
+    if (subcatId) {
+      searchParams.set('category', subcatId);
+      if (selectedMainCat) {
+        searchParams.set('mainCategory', selectedMainCat);
       }
+    } else {
+      searchParams.delete('category');
     }
     setSearchParams(searchParams);
   }
 
   function handleImageError(e) {
-    e.target.src = 'https://via.placeholder.com/400x400?text=LED+Light';
+    e.target.src = 'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=400';
   }
 
   function handleAddToCart(e, product) {
@@ -234,11 +285,64 @@ function ProductsPage(props) {
   }
 
   function handleClearAll() {
-    setSelectedCategory('All');
+    setSelectedMainCat(null);
+    setSelectedSubcat(null);
     setSearchQuery('');
     setSortBy('default');
     searchParams.delete('category');
+    searchParams.delete('mainCategory');
     setSearchParams(searchParams);
+  }
+
+  var currentMainCat = selectedMainCat ? mainCategories[selectedMainCat] : null;
+  
+  var currentSubcatName = null;
+  if (selectedSubcat && currentMainCat) {
+    var foundSubcat = currentMainCat.subcategories.find(function(sub) {
+      return sub.id === selectedSubcat;
+    });
+    if (foundSubcat) {
+      currentSubcatName = foundSubcat.name;
+    }
+  }
+
+  function getHeroDescription() {
+    if (currentMainCat) {
+      return currentMainCat.description;
+    }
+    return 'Discover premium products for every need';
+  }
+
+  function getMainCategoryIcon(iconType) {
+    switch (iconType) {
+      case 'bulb':
+        return (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 18h6"/><path d="M10 22h4"/>
+            <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>
+          </svg>
+        );
+      case 'shirt':
+        return (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
+          </svg>
+        );
+      case 'baby':
+        return (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"/>
+            <path d="M19 6.3a9 9 0 0 1 1.8 3.9 2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"/>
+          </svg>
+        );
+      default:
+        return (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+          </svg>
+        );
+    }
   }
 
   return (
@@ -246,30 +350,145 @@ function ProductsPage(props) {
       <Navbar onCartClick={onCartClick} cartCount={cartCount} />
 
       {/* Hero Section */}
-      <section className="products-hero">
-        <h1>Our <span>Collection</span></h1>
-        <p>Discover premium LED lighting solutions for every space</p>
+      <section className="products-hero" style={currentMainCat ? { '--hero-accent': currentMainCat.color } : {}}>
+        {(selectedMainCat || selectedSubcat) && (
+          <nav className="products-breadcrumb">
+            <Link to="/products" onClick={function(e) { e.preventDefault(); handleClearAll(); }}>All Products</Link>
+            {currentMainCat && (
+              <React.Fragment>
+                <span className="breadcrumb-separator">/</span>
+                <Link 
+                  to={'/products?mainCategory=' + selectedMainCat}
+                  onClick={function(e) { e.preventDefault(); handleMainCategoryClick(selectedMainCat); }}
+                  className={!selectedSubcat ? 'active' : ''}
+                >
+                  {currentMainCat.name}
+                </Link>
+              </React.Fragment>
+            )}
+            {currentSubcatName && (
+              <React.Fragment>
+                <span className="breadcrumb-separator">/</span>
+                <span className="active">{currentSubcatName}</span>
+              </React.Fragment>
+            )}
+          </nav>
+        )}
+        
+        <h1>
+          {currentMainCat ? (
+            <React.Fragment>{currentSubcatName ? currentSubcatName : currentMainCat.name}</React.Fragment>
+          ) : (
+            <React.Fragment>Our <span>Collection</span></React.Fragment>
+          )}
+        </h1>
+        <p>{getHeroDescription()}</p>
       </section>
 
+      {/* Subcategory Filter Pills - Show when main category is selected */}
+      {selectedMainCat && currentMainCat && (
+        <div className="subcategory-filter-section" style={{ '--section-color': currentMainCat.color }}>
+          <div className="subcategory-container">
+            <div className="subcategory-header">
+              <button className="back-to-all" onClick={function() { handleMainCategoryClick(null); }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 12H5M12 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                All Categories
+              </button>
+              <span className="subcategory-label">
+                {currentMainCat.name}:
+              </span>
+            </div>
+            <div className="subcategory-pills">
+              <button 
+                className={!selectedSubcat ? 'subcat-pill active' : 'subcat-pill'}
+                onClick={function() { handleSubcategoryClick(null); }}
+              >
+                All
+                <span className="pill-count">{filteredProducts.length}</span>
+              </button>
+              {currentMainCat.subcategories.map(function(subcat) {
+                var count = getSubcategoryCount(subcat.id);
+                return (
+                  <button 
+                    key={subcat.id}
+                    className={selectedSubcat === subcat.id ? 'subcat-pill active' : 'subcat-pill'}
+                    onClick={function() { handleSubcategoryClick(subcat.id); }}
+                  >
+                    {subcat.name}
+                    <span className="pill-count">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="products-container">
-        {/* Desktop Sidebar + Mobile Filter Toggle */}
         <div className="products-layout">
           
           {/* Sidebar - Desktop */}
           <aside className="products-sidebar">
             <div className="sidebar-section">
-              <h3>Categories</h3>
-              <ul className="category-list">
-                {categories.map(function(category) {
+              <h3>Shop By Category</h3>
+              <ul className="main-category-list">
+                <li>
+                  <button
+                    className={!selectedMainCat ? 'main-cat-btn active' : 'main-cat-btn'}
+                    onClick={function() { handleMainCategoryClick(null); }}
+                  >
+                    <span className="cat-icon all">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                      </svg>
+                    </span>
+                    <span className="cat-name">All Products</span>
+                    <span className="cat-count">{products.length}</span>
+                  </button>
+                </li>
+                {Object.keys(mainCategories).map(function(mainCatId) {
+                  var mainCat = mainCategories[mainCatId];
+                  var isActive = selectedMainCat === mainCatId;
+                  var mainCatCount = 0;
+                  mainCat.subcategories.forEach(function(sub) {
+                    mainCatCount += getSubcategoryCount(sub.id);
+                  });
+                  
                   return (
-                    <li key={category}>
+                    <li key={mainCatId}>
                       <button
-                        className={selectedCategory === category ? 'category-btn active' : 'category-btn'}
-                        onClick={function() { handleCategoryClick(category); }}
+                        className={isActive ? 'main-cat-btn active' : 'main-cat-btn'}
+                        style={{ '--cat-color': mainCat.color }}
+                        onClick={function() { handleMainCategoryClick(mainCatId); }}
                       >
-                        <span className="category-name">{category}</span>
-                        <span className="category-count">{getCategoryCount(category)}</span>
+                        <span className="cat-icon" style={{ background: mainCat.color }}>
+                          {getMainCategoryIcon(mainCat.icon)}
+                        </span>
+                        <span className="cat-name">{mainCat.name}</span>
+                        <span className="cat-count">{mainCatCount}</span>
                       </button>
+                      
+                      {isActive && (
+                        <ul className="subcategory-list">
+                          {mainCat.subcategories.map(function(subcat) {
+                            var subCount = getSubcategoryCount(subcat.id);
+                            return (
+                              <li key={subcat.id}>
+                                <button
+                                  className={selectedSubcat === subcat.id ? 'subcat-btn active' : 'subcat-btn'}
+                                  onClick={function() { handleSubcategoryClick(subcat.id); }}
+                                >
+                                  <span className="subcat-name">{subcat.name}</span>
+                                  <span className="subcat-count">{subCount}</span>
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
                     </li>
                   );
                 })}
@@ -297,18 +516,14 @@ function ProductsPage(props) {
 
           {/* Main Content */}
           <main className="products-main">
-            {/* Top Bar */}
             <div className="products-topbar">
               <div className="topbar-left">
-                {/* Mobile Filter Button */}
                 <button 
                   className="mobile-filter-btn"
                   onClick={function() { setShowMobileFilter(!showMobileFilter); }}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="4" y1="6" x2="20" y2="6"/>
-                    <line x1="4" y1="12" x2="16" y2="12"/>
-                    <line x1="4" y1="18" x2="12" y2="18"/>
+                    <line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="16" y2="12"/><line x1="4" y1="18" x2="12" y2="18"/>
                   </svg>
                   Filters
                 </button>
@@ -320,8 +535,7 @@ function ProductsPage(props) {
               <div className="topbar-right">
                 <div className="search-box">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="11" cy="11" r="8"/>
-                    <path d="M21 21l-4.35-4.35"/>
+                    <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
                   </svg>
                   <input
                     type="text"
@@ -330,20 +544,10 @@ function ProductsPage(props) {
                     onChange={function(e) { setSearchQuery(e.target.value); }}
                   />
                   {searchQuery && (
-                    <button 
-                      className="clear-search"
-                      onClick={function() { setSearchQuery(''); }}
-                    >
-                      ×
-                    </button>
+                    <button className="clear-search" onClick={function() { setSearchQuery(''); }}>×</button>
                   )}
                 </div>
-
-                <select 
-                  className="sort-select"
-                  value={sortBy}
-                  onChange={function(e) { setSortBy(e.target.value); }}
-                >
+                <select className="sort-select" value={sortBy} onChange={function(e) { setSortBy(e.target.value); }}>
                   <option value="default">Sort by</option>
                   <option value="name">Name A-Z</option>
                   <option value="price-low">Price: Low to High</option>
@@ -362,34 +566,62 @@ function ProductsPage(props) {
                 <div className="mobile-filter-content">
                   <div className="filter-section">
                     <h4>Categories</h4>
-                    <div className="mobile-categories">
-                      {categories.map(function(category) {
+                    <div className="mobile-main-categories">
+                      <button
+                        className={!selectedMainCat ? 'mobile-main-cat-btn active' : 'mobile-main-cat-btn'}
+                        onClick={function() { handleMainCategoryClick(null); }}
+                      >
+                        All Products
+                      </button>
+                      {Object.keys(mainCategories).map(function(mainCatId) {
+                        var mainCat = mainCategories[mainCatId];
                         return (
                           <button
-                            key={category}
-                            className={selectedCategory === category ? 'mobile-cat-btn active' : 'mobile-cat-btn'}
-                            onClick={function() { handleCategoryClick(category); }}
+                            key={mainCatId}
+                            className={selectedMainCat === mainCatId ? 'mobile-main-cat-btn active' : 'mobile-main-cat-btn'}
+                            style={{ '--btn-color': mainCat.color }}
+                            onClick={function() { handleMainCategoryClick(mainCatId); }}
                           >
-                            {category}
-                            <span>({getCategoryCount(category)})</span>
+                            {mainCat.name}
                           </button>
                         );
                       })}
                     </div>
                   </div>
+                  
+                  {selectedMainCat && currentMainCat && (
+                    <div className="filter-section">
+                      <h4>{currentMainCat.name} Subcategories</h4>
+                      <div className="mobile-categories">
+                        <button
+                          className={!selectedSubcat ? 'mobile-cat-btn active' : 'mobile-cat-btn'}
+                          onClick={function() { handleSubcategoryClick(null); }}
+                        >
+                          All {currentMainCat.name}
+                        </button>
+                        {currentMainCat.subcategories.map(function(subcat) {
+                          return (
+                            <button
+                              key={subcat.id}
+                              className={selectedSubcat === subcat.id ? 'mobile-cat-btn active' : 'mobile-cat-btn'}
+                              onClick={function() { handleSubcategoryClick(subcat.id); }}
+                            >
+                              {subcat.name}
+                              <span>({getSubcategoryCount(subcat.id)})</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="filter-section">
                     <h4>Sort By</h4>
                     <div className="mobile-sort">
-                      <button
-                        className={sortBy === 'price-low' ? 'active' : ''}
-                        onClick={function() { setSortBy('price-low'); setShowMobileFilter(false); }}
-                      >
+                      <button className={sortBy === 'price-low' ? 'active' : ''} onClick={function() { setSortBy('price-low'); setShowMobileFilter(false); }}>
                         Price: Low to High
                       </button>
-                      <button
-                        className={sortBy === 'price-high' ? 'active' : ''}
-                        onClick={function() { setSortBy('price-high'); setShowMobileFilter(false); }}
-                      >
+                      <button className={sortBy === 'price-high' ? 'active' : ''} onClick={function() { setSortBy('price-high'); setShowMobileFilter(false); }}>
                         Price: High to Low
                       </button>
                     </div>
@@ -399,12 +631,18 @@ function ProductsPage(props) {
             )}
 
             {/* Active Filters */}
-            {(selectedCategory !== 'All' || searchQuery) && (
+            {(selectedMainCat || selectedSubcat || searchQuery) && (
               <div className="active-filters">
-                {selectedCategory !== 'All' && (
+                {selectedMainCat && currentMainCat && (
+                  <span className="filter-tag main-cat-tag" style={{ '--tag-color': currentMainCat.color }}>
+                    {currentMainCat.name}
+                    <button onClick={function() { handleMainCategoryClick(null); }}>×</button>
+                  </span>
+                )}
+                {selectedSubcat && currentSubcatName && (
                   <span className="filter-tag">
-                    {selectedCategory}
-                    <button onClick={function() { handleCategoryClick('All'); }}>×</button>
+                    {currentSubcatName}
+                    <button onClick={function() { handleSubcategoryClick(null); }}>×</button>
                   </span>
                 )}
                 {searchQuery && (
@@ -413,12 +651,7 @@ function ProductsPage(props) {
                     <button onClick={function() { setSearchQuery(''); }}>×</button>
                   </span>
                 )}
-                <button 
-                  className="clear-all-btn"
-                  onClick={handleClearAll}
-                >
-                  Clear All
-                </button>
+                <button className="clear-all-btn" onClick={handleClearAll}>Clear All</button>
               </div>
             )}
 
@@ -431,55 +664,40 @@ function ProductsPage(props) {
               <div className="no-products">
                 <div className="no-products-icon">
                   <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <circle cx="11" cy="11" r="8"/>
-                    <path d="M21 21l-4.35-4.35"/>
-                    <line x1="8" y1="11" x2="14" y2="11"/>
+                    <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><line x1="8" y1="11" x2="14" y2="11"/>
                   </svg>
                 </div>
                 <h3>No products found</h3>
                 <p>Try adjusting your filters or search query</p>
-                <button 
-                  className="clear-filters-btn"
-                  onClick={handleClearAll}
-                >
-                  Clear Filters
-                </button>
+                <button className="clear-filters-btn" onClick={handleClearAll}>Clear Filters</button>
               </div>
             ) : (
               <div className="products-grid">
                 {filteredProducts.map(function(product) {
                   return (
                     <Link to={'/product/' + product.id} key={product.id} className="product-card">
-                      {/* Product Image */}
                       <div className="product-image-wrapper">
                         <div className="product-image">
                           <img 
-                            src={product.imageUrl || 'https://via.placeholder.com/400x400?text=LED+Light'} 
+                            src={product.imageUrl || 'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=400'} 
                             alt={product.name}
                             onError={handleImageError}
                           />
                         </div>
-                        {product.badge && (
-                          <span className="product-badge">{product.badge}</span>
-                        )}
-                        {product.discount && (
-                          <span className="product-badge sale">{product.discount}% OFF</span>
-                        )}
+                        {product.badge && (<span className="product-badge">{product.badge}</span>)}
+                        {product.discount && (<span className="product-badge sale">{product.discount}% OFF</span>)}
                         <div className="product-overlay">
                           <span className="quick-view-btn">Quick View</span>
                         </div>
                       </div>
                       
-                      {/* Product Details */}
                       <div className="product-details">
-                        <span className="product-category">{product.category || 'LED Light'}</span>
-                        <h3 className="product-name">{product.name || 'LED Product'}</h3>
+                        <span className="product-category">{product.category || 'Product'}</span>
+                        <h3 className="product-name">{product.name || 'Product Name'}</h3>
                         <div className="product-footer">
                           <div className="product-price">
                             <span className="price-current">₹{product.price ? product.price.toLocaleString() : '0'}</span>
-                            {product.originalPrice && (
-                              <span className="price-original">₹{product.originalPrice.toLocaleString()}</span>
-                            )}
+                            {product.originalPrice && (<span className="price-original">₹{product.originalPrice.toLocaleString()}</span>)}
                           </div>
                           <button 
                             className="add-to-cart-btn"
@@ -487,8 +705,7 @@ function ProductsPage(props) {
                             aria-label="Add to cart"
                           >
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <circle cx="9" cy="21" r="1"/>
-                              <circle cx="20" cy="21" r="1"/>
+                              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
                               <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
                             </svg>
                             <span>Add</span>
@@ -497,9 +714,7 @@ function ProductsPage(props) {
                         {product.quantity !== undefined && product.quantity <= 5 && product.quantity > 0 && (
                           <span className="stock-warning">Only {product.quantity} left!</span>
                         )}
-                        {product.quantity === 0 && (
-                          <span className="out-of-stock">Out of Stock</span>
-                        )}
+                        {product.quantity === 0 && (<span className="out-of-stock">Out of Stock</span>)}
                       </div>
                     </Link>
                   );
