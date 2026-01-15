@@ -352,7 +352,7 @@ function HomePage(props) {
                           var subcatImage = categoryImages[subcat.id] || '';
                           return (
                             <Link 
-                              to={'/products?category=' + subcat.id} 
+                              to={'/products?mainCategory=' + catId + '&category=' + subcat.id} 
                               key={subcat.id}
                               className="subcat-item"
                             >
@@ -390,7 +390,7 @@ function HomePage(props) {
                 return category.subcategories.slice(0, 4).map(function(subcat) {
                   return (
                     <Link 
-                      to={'/products?category=' + subcat.id}
+                      to={'/products?mainCategory=' + catId + '&category=' + subcat.id}
                       key={subcat.id}
                       className="category-pill"
                       style={{ '--pill-color': category.color }}
