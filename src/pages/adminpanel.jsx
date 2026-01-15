@@ -708,6 +708,69 @@ function AdminPanel() {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(amount || 0);
   };
 
+  // Format order items - handles both string and array of objects
+  var formatOrderItems = function(items) {
+    if (!items) return 'No items';
+    
+    // If it's already a string, return it
+    if (typeof items === 'string') {
+      return items;
+    }
+    
+    // If it's an array of objects, format them
+    if (Array.isArray(items)) {
+      return items.map(function(item) {
+        if (typeof item === 'string') {
+          return item;
+        }
+        // Handle object with name, quantity, price
+        var itemName = item.name || item.productName || 'Unknown Item';
+        var qty = item.quantity || item.qty || 1;
+        return itemName + ' (x' + qty + ')';
+      }).join(', ');
+    }
+    
+    // If it's an object, try to extract useful info
+    if (typeof items === 'object') {
+      if (items.name) {
+        return items.name + (items.quantity ? ' (x' + items.quantity + ')' : '');
+      }
+      return JSON.stringify(items);
+    }
+    
+    return String(items);
+  };
+
+  // Format address - handles both string and object
+  var formatAddress = function(address) {
+    if (!address) return 'N/A';
+    
+    // If it's already a string, return it
+    if (typeof address === 'string') {
+      return address;
+    }
+    
+    // If it's an object, format it
+    if (typeof address === 'object') {
+      var parts = [];
+      if (address.street || address.line1) parts.push(address.street || address.line1);
+      if (address.line2) parts.push(address.line2);
+      if (address.city) parts.push(address.city);
+      if (address.state) parts.push(address.state);
+      if (address.pincode || address.zip || address.postalCode) parts.push(address.pincode || address.zip || address.postalCode);
+      if (address.country) parts.push(address.country);
+      
+      if (parts.length > 0) {
+        return parts.join(', ');
+      }
+      
+      // If no recognized fields, try to stringify
+      return JSON.stringify(address);
+    }
+    
+    return String(address);
+  };
+
   var handleAddProduct = function() {
     setEditingProduct(null);
     setFormData({ name: '', price: '', description: '', mainCategory: '', category: '', stock: '', image: '' });
@@ -1352,14 +1415,14 @@ function AdminPanel() {
                       </div>
                       <div className="order-body">
                         <div className="order-info-grid">
-                          <div className="info-item"><span className="info-label">Customer</span><span className="info-value">{order.customerName}</span></div>
-                          <div className="info-item"><span className="info-label">Email</span><span className="info-value">{order.email}</span></div>
-                          <div className="info-item"><span className="info-label">Phone</span><span className="info-value">{order.phone}</span></div>
-                          <div className="info-item"><span className="info-label">Address</span><span className="info-value address">{order.address}</span></div>
+                          <div className="info-item"><span className="info-label">Customer</span><span className="info-value">{order.customerName || 'N/A'}</span></div>
+                          <div className="info-item"><span className="info-label">Email</span><span className="info-value">{order.email || 'N/A'}</span></div>
+                          <div className="info-item"><span className="info-label">Phone</span><span className="info-value">{order.phone || 'N/A'}</span></div>
+                          <div className="info-item"><span className="info-label">Address</span><span className="info-value address">{formatAddress(order.address)}</span></div>
                         </div>
                         <div className="order-items">
                           <span className="items-label">Items:</span>
-                          <span className="items-value">{order.items}</span>
+                          <span className="items-value">{formatOrderItems(order.items)}</span>
                         </div>
                         <div className="order-total">
                           <span>Total Amount</span>
